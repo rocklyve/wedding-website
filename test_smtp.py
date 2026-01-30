@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import socket
 
 # SMTP-Zugangsdaten (hier eintragen!)
 SMTP_HOST = "mxf9a8.netcup.net"
@@ -19,8 +20,14 @@ msg["To"] = TO_EMAIL
 msg["Subject"] = subject
 msg.attach(MIMEText(body, "plain", "utf-8"))
 
+def smtp_ssl_ipv4(host, port):
+    # Erzwinge IPv4
+    addr = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)[0][4]
+    sock = socket.create_connection(addr)
+    return smtplib.SMTP_SSL(host=None, port=None, local_hostname=None, timeout=10, source_address=None, sock=sock)
+
 try:
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+    with smtp_ssl_ipv4(SMTP_HOST, SMTP_PORT) as server:
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(FROM_EMAIL, TO_EMAIL, msg.as_string())
     print("Testmail erfolgreich gesendet!")
