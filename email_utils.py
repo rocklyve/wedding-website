@@ -5,7 +5,7 @@ import streamlit as st
 
 def send_confirmation_email(to_email, subject, body):
     smtp_host = st.secrets["smtp"]["host"]
-    smtp_port = st.secrets["smtp"].get("port", 587)
+    smtp_port = st.secrets["smtp"].get("port", 465)
     smtp_user = st.secrets["smtp"]["user"]
     smtp_password = st.secrets["smtp"]["password"]
     from_email = st.secrets["smtp"].get("from", smtp_user)
@@ -17,10 +17,15 @@ def send_confirmation_email(to_email, subject, body):
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(from_email, to_email, msg.as_string())
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
+                server.login(smtp_user, smtp_password)
+                server.sendmail(from_email, to_email, msg.as_string())
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(from_email, to_email, msg.as_string())
         return True
     except Exception as e:
         st.error(f"Fehler beim Senden der Bestätigungs-E-Mail: {e}")
