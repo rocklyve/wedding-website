@@ -3,42 +3,41 @@ import streamlit as st
 def event_info_page():
     left_spacer, main_col, right_spacer = st.columns([2, 5, 2])
     with main_col:
-        st.title(f":material/celebration: The Wedding of {st.secrets['wedding']['wedding_couple']}")
+        st.title(f":material/celebration: Die Hochzeit von {st.secrets['wedding']['wedding_couple']}")
         st.write(st.secrets['event']['welcome_text'])
 
         st.markdown("---")
 
         # Create tabs
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-            ":material/event: Event Details",
-            ":material/restaurant_menu: Menu",
-            ":material/schedule: Timeline",
-            ":material/hotel: Accommodations",
-            ":material/directions_car: Transportation",
-            ":material/card_giftcard: Registry & Info",
-            ":material/contact_mail: Contact"
+            ":material/event: Details",
+            ":material/restaurant_menu: Menü",
+            ":material/schedule: Ablauf",
+            ":material/hotel: Unterkünfte",
+            ":material/directions_car: Anreise",
+            ":material/card_giftcard: Geschenke & Infos",
+            ":material/contact_mail: Kontakt"
         ])
 
         # Tab 1: Event Details (Date, Time, Ceremony, Reception)
         with tab1:
             with st.container(border=True):
-            # Wedding Date and Time
-                st.header(":material/calendar_today: Date & Time")
+                st.header(":material/calendar_today: Datum & Uhrzeit")
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    st.write("**Wedding Date**")
+                    st.write("**Hochzeitsdatum**")
                     st.write(st.secrets['event']['wedding_date'])
 
                 with col2:
-                    st.write("**Ceremony Time**")
+                    st.write("**Uhrzeit der Trauung**")
                     st.write(st.secrets['event']['ceremony_time'])
 
                 st.markdown("---")
 
-                # Ceremony Venue (Church)
+                # Ceremony Venue
                 if st.secrets['event'].get('ceremony_venue_name'):
-                    st.header(":material/church: Wedding Ceremony")
+                    st.header(":material/church: Trauung")
 
                     ceremony_col1, ceremony_col2 = st.columns([2, 1])
 
@@ -50,19 +49,17 @@ def event_info_page():
                             st.write("")
                             st.write(st.secrets['event']['ceremony_venue_description'])
 
-                        # Add map if URL provided
                         if st.secrets['event'].get('ceremony_venue_map_url'):
-                            st.page_link(st.secrets['event']['ceremony_venue_map_url'], label='Open in Maps', icon=":material/map:")
+                            st.page_link(st.secrets['event']['ceremony_venue_map_url'], label='In Maps öffnen', icon=":material/map:")
 
                     with ceremony_col2:
-                        # Ceremony venue image if provided
                         if st.secrets['event'].get('ceremony_venue_image'):
                             st.image(st.secrets['event']['ceremony_venue_image'], width=425)
 
                     st.markdown("---")
 
                 # Reception Venue
-                st.header(":material/celebration: Reception Venue")
+                st.header(":material/celebration: Feierlocation")
 
                 venue_col1, venue_col2 = st.columns([2, 1])
 
@@ -73,12 +70,10 @@ def event_info_page():
                     if st.secrets['event'].get('venue_description'):
                         st.write(st.secrets['event']['venue_description'])
 
-                    # Add map if URL provided
                     if st.secrets['event'].get('venue_map_url'):
-                        st.page_link(st.secrets['event']['venue_map_url'], label='Open in Maps', icon=":material/map:")
+                        st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
 
                 with venue_col2:
-                    # Venue image if provided
                     if st.secrets['event'].get('venue_image'):
                         st.image(st.secrets['event']['venue_image'], width=425)
 
@@ -88,12 +83,10 @@ def event_info_page():
                 with st.container(border=True):
                     menu_info = st.secrets['menu']
 
-                    # Check if there are any detailed menu items to display
                     starters_detailed = menu_info.get('starters_detailed', [])
                     mains_detailed = menu_info.get('mains_detailed', [])
                     desserts_detailed = menu_info.get('desserts_detailed', [])
 
-                    # Helper function to check if items exist and are valid
                     def has_valid_items(items):
                         if not items:
                             return False
@@ -110,7 +103,6 @@ def event_info_page():
                     has_desserts = has_valid_items(desserts_detailed)
 
                     if has_starters or has_mains or has_desserts:
-                        # Optional menu description
                         if menu_info.get('menu_description'):
                             st.write(menu_info['menu_description'])
 
@@ -118,7 +110,7 @@ def event_info_page():
 
                         if has_starters:
                             with menu_col1:
-                                st.subheader(":material/restaurant: Starters")
+                                st.subheader(":material/restaurant: Vorspeisen")
                                 for item in starters_detailed:
                                     if isinstance(item, dict):
                                         if item.get('name', '').strip():
@@ -131,7 +123,7 @@ def event_info_page():
 
                         if has_mains:
                             with menu_col2:
-                                st.subheader(":material/hand_meal: Main Courses")
+                                st.subheader(":material/hand_meal: Hauptgerichte")
                                 for item in mains_detailed:
                                     if isinstance(item, dict):
                                         if item.get('name', '').strip():
@@ -155,11 +147,10 @@ def event_info_page():
                                     elif isinstance(item, str) and item.strip():
                                         st.write(f"• {item}")
 
-                        # Optional menu notes
                         if menu_info.get('menu_notes'):
                             st.info(f":material/info: {menu_info['menu_notes']}")
             else:
-                st.info("Menu information will be available soon.")
+                st.info("Menüinformationen folgen in Kürze.")
 
         # Tab 3: Timeline
         with tab3:
@@ -176,37 +167,37 @@ def event_info_page():
                                 if item.get('description'):
                                     st.caption(item['description'])
             else:
-                st.info("Timeline information will be available soon.")
+                st.info("Ablaufinformationen folgen in Kürze.")
 
         # Tab 4: Accommodations
         with tab4:
             accommodations_items = st.secrets.get('accommodations', [])
             if accommodations_items:
                 st.write(st.secrets['event'].get('accommodations_intro',
-                        'We have reserved room blocks at the following hotels:'))
+                        'Wir haben Zimmerkontingente in folgenden Hotels reserviert:'))
 
                 accommodations = st.secrets['accommodations']
 
                 for hotel in accommodations:
                     with st.expander(f":material/hotel: {hotel['name']}", expanded=True):
-                        st.write(f"**Address:** {hotel['address']}")
+                        st.write(f"**Adresse:** {hotel['address']}")
 
                         if hotel.get('distance'):
-                            st.write(f"**Distance from venue:** {hotel['distance']}")
+                            st.write(f"**Entfernung zur Location:** {hotel['distance']}")
 
                         if hotel.get('phone'):
-                            st.write(f"**Phone:** {hotel['phone']}")
+                            st.write(f"**Telefon:** {hotel['phone']}")
 
                         if hotel.get('booking_code'):
-                            st.info(f":material/info: Use booking code: **{hotel['booking_code']}** for our group rate")
+                            st.info(f":material/info: Buchungscode: **{hotel['booking_code']}** für Sonderkonditionen")
 
                         if hotel.get('website'):
-                            st.markdown(f"[:material/link: Visit Website]({hotel['website']})")
+                            st.markdown(f"[:material/link: Website besuchen]({hotel['website']})")
 
                         if hotel.get('notes'):
                             st.write(hotel['notes'])
             else:
-                st.info("Accommodation information will be available soon.")
+                st.info("Unterkunftsinformationen folgen in Kürze.")
 
         # Tab 5: Transportation
         with tab5:
@@ -214,28 +205,27 @@ def event_info_page():
                 transport_info = st.secrets['event']['transportation']
                 with st.container(border=True):
                     if transport_info.get('parking'):
-                        st.subheader(":material/local_parking: Parking")
+                        st.subheader(":material/local_parking: Parken")
                         st.write(transport_info['parking'])
                         st.markdown("")
 
                     if transport_info.get('public_transport'):
-                        st.subheader(":material/train: Public Transportation")
+                        st.subheader(":material/train: Öffentlicher Nahverkehr")
                         st.write(transport_info['public_transport'])
                         st.markdown("")
 
                     if transport_info.get('taxi_info'):
-                        st.subheader(":material/local_taxi: Taxi Services")
+                        st.subheader(":material/local_taxi: Taxi")
                         st.write(transport_info['taxi_info'])
             else:
-                st.info("Transportation information will be available soon.")
+                st.info("Anreiseinformationen folgen in Kürze.")
 
         # Tab 6: Registry & Additional Info
         with tab6:
             with st.container(border=True):
-            # Dress Code
                 dress_code = st.secrets['event'].get('dress_code')
                 if dress_code:
-                    st.subheader(":material/checkroom: Dress Code")
+                    st.subheader(":material/checkroom: Dresscode")
                     st.write(dress_code)
 
                     dress_code_notes = st.secrets['event'].get('dress_code_notes')
@@ -244,19 +234,17 @@ def event_info_page():
 
                     st.markdown("---")
 
-                # Gift Registry
                 registries = st.secrets['event'].get('registry')
                 if registries:
-                    # Filter out registries with empty name or URL
                     valid_registries = [
                         r for r in registries
                         if r.get('name', '').strip() and r.get('url', '').strip()
                     ]
 
                     if valid_registries:
-                        st.subheader(":material/card_giftcard: Gift Registry")
+                        st.subheader(":material/card_giftcard: Geschenkliste")
                         st.write(st.secrets['event'].get('registry_message',
-                                'Your presence is the greatest gift, but if you wish to give something, we are registered at:'))
+                                'Eure Anwesenheit ist das größte Geschenk, aber falls ihr etwas schenken möchtet:'))
 
                         reg_cols = st.columns(len(valid_registries))
                         for idx, registry in enumerate(valid_registries):
@@ -278,23 +266,21 @@ def event_info_page():
                                         border-radius: 5px;
                                         display: inline-block;
                                         margin-top: 10px;
-                                    '>View Registry</a>
+                                    '>Zur Wunschliste</a>
                                 </div>
                                 """, unsafe_allow_html=True)
 
                         st.markdown("---")
 
-                # Additional Information
                 additional_info = st.secrets['event'].get('additional_info')
                 if additional_info:
-                    # Filter out items with empty title or content
                     valid_info = [
                         item for item in additional_info
                         if item.get('title', '').strip() and item.get('content', '').strip()
                     ]
 
                     if valid_info:
-                        st.subheader(":material/info: Additional Information")
+                        st.subheader(":material/info: Weitere Informationen")
 
                         for info_item in valid_info:
                             with st.expander(info_item['title']):
@@ -305,7 +291,7 @@ def event_info_page():
             if st.secrets.get('contact'):
                 contact = st.secrets['contact']
                 with st.container(border=True):
-                    st.write("If you have any questions, please don't hesitate to reach out:")
+                    st.write("Bei Fragen meldet euch gerne bei uns:")
 
                     contact_col1, contact_col2 = st.columns(2)
 
@@ -325,4 +311,4 @@ def event_info_page():
                             if contact['groom'].get('email'):
                                 st.write(f":material/email: {contact['groom']['email']}")
             else:
-                st.info("Contact information will be available soon.")
+                st.info("Kontaktinformationen folgen in Kürze.")
