@@ -186,10 +186,13 @@ def process_submission():
                 org_body = f"Absage von: {form_data.get('contact_name', '')} ({to_email})\nStatus: Absage\n\nDetails siehe CSV."
             mail_success = send_confirmation_email(to_email, subject, body)
             org_success = send_confirmation_email(organizer_email, org_subject, org_body)
+            # Warnungen persistent im session_state speichern
+            if 'mail_warnings' not in st.session_state:
+                st.session_state.mail_warnings = []
             if not mail_success:
-                st.warning("Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.")
+                st.session_state.mail_warnings.append("Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.")
             if not org_success:
-                st.warning("Hinweis: Die Benachrichtigung an den Veranstalter konnte nicht gesendet werden.")
+                st.session_state.mail_warnings.append("Hinweis: Die Benachrichtigung an den Veranstalter konnte nicht gesendet werden.")
 
         # Mark as successfully submitted
         st.session_state.form_submitted = True
@@ -294,6 +297,12 @@ def rsvp_form_page():
         # Check if form has been successfully submitted
         if st.session_state.form_submitted:
             st.success(":material/check_circle: Zusage erfolgreich übermittelt! Vielen Dank für Ihre Rückmeldung.")
+            # Zeige persistente Mail-Warnungen nach erfolgreicher Submission
+            if 'mail_warnings' in st.session_state and st.session_state.mail_warnings:
+                for warn in st.session_state.mail_warnings:
+                    st.warning(warn)
+                if st.button("Warnungen ausblenden", key="clear_mail_warnings"):
+                    st.session_state.mail_warnings = []
             st.balloons()
             return
 
