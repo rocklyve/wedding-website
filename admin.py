@@ -112,6 +112,14 @@ def admin_summary_page():
         if guest_df.empty:
             st.info(":material/inbox: Noch keine Zusagen.")
         else:
+            # Essenspräferenz-Auswertung
+            pref_counts = guest_df['essenspräferenz'].value_counts().reindex(["Keine", "Vegetarisch", "Vegan"], fill_value=0)
+            st.subheader(":material/restaurant: Essenspräferenzen")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Alles (Keine)", pref_counts["Keine"])
+            col2.metric("Vegetarisch", pref_counts["Vegetarisch"])
+            col3.metric("Vegan", pref_counts["Vegan"])
+
             # Sortiere nach Zeit, Kontaktperson, Gastname
             guest_df = guest_df.sort_values(['timestamp', 'contact_name', 'guest_last_name', 'guest_first_name'], ascending=[False, True, True, True])
             # Zeige Tabelle
