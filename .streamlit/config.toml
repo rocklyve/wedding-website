@@ -9,9 +9,9 @@ welcome_message = "Wir freuen uns, unseren besonderen Tag mit dir/euch zu feiern
 
 [theme]
 base = "light"
-primaryColor="#B7D7C9"  # Eukalyptusgrün
+primaryColor="#43A047"  # Kräftiges Grün für bessere Sichtbarkeit
 backgroundColor="#f1f1f1ff"
-secondaryBackgroundColor="#FAEEF3"  # Sehr helles Pastellrosa (dezenter Hintergrund)
+secondaryBackgroundColor="#E8F6EF"  # Sehr helles Pastellrosa (dezenter Hintergrund)
 codeBackgroundColor="#E3F9E5"  # Sehr helles Grün
 baseRadius = "medium"
 showWidgetBorder = true
@@ -22,7 +22,7 @@ blueColor="#B7D7C9"
 
 [theme.sidebar]
 backgroundColor="#E8F6EF"  # Sehr helles Eukalyptusgrün
-secondaryBackgroundColor="#FAEEF3"  # Sehr helles Pastellrosa (dezenter Hintergrund)
+secondaryBackgroundColor="#E8F6EF"  # Sehr helles Pastellrosa (dezenter Hintergrund)
 
 [server]
 enableCORS = false
