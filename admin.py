@@ -106,61 +106,33 @@ def admin_summary_page():
     df = load_rsvps()
     
     if not df.empty:
-        # Summary statistics
-        st.write("**RSVP Overview**")
-        
-        # Main metrics
-        col1, col2, col3, col4 = st.columns(4)
-        
-        total_contacts = df['contact_name'].nunique()
-        attending_contacts = df[df['attending'] == 'Yes']['contact_name'].nunique()
-        not_attending_contacts = df[df['attending'] == 'No']['contact_name'].nunique()
-        total_guests = len(df[df['attending'] == 'Yes'])
-        
-        with col1:
-            st.metric("Total Responses", total_contacts)
-        with col2:
-            st.metric("Attending", attending_contacts)
-        with col3:
-            st.metric("Not Attending", not_attending_contacts)
-        with col4:
-            st.metric("Total Guests", total_guests)
-        
-        # Attendance breakdown
-        # if total_contacts > 0:
-        #     st.subheader("Response Breakdown")
-        #     attendance_data = {
-        #         'Response': ['Attending', 'Not Attending'],
-        #         'Count': [attending_contacts, not_attending_contacts]
-        #     }
-        #     st.bar_chart(pd.DataFrame(attendance_data).set_index('Response'))
-        
-        # Recent RSVPs
-        #st.subheader("Recent RSVPs")
-        recent_df = df.sort_values('timestamp', ascending=False).head(10)
-        st.divider()
-        for _, row in recent_df.iterrows():
-            with st.container():
-                col1, col2, col3 = st.columns([2, 1, 1])
-                with col1:
-                    st.write(f"**{row['contact_name']}**")
-                    if row['attending'] == 'Yes' and (row.get('guest_first_name') or row.get('guest_last_name')):
-                        guest_name = f"{row.get('guest_first_name', '')} {row.get('guest_last_name', '')}".strip()
-                        st.write(f":material/person: {guest_name}")
-                with col2:
-                    status_color = ":material/check_circle:" if row['attending'] == 'Yes' else ":material/cancel:"
-                    st.write(f"{status_color} {row['attending']}")
-                    
-                    # Fixed comments handling
-                    if pd.notna(row['comments']) and str(row['comments']).strip():
-                        st.write(f":material/chat_bubble: _{row['comments']}_")
-                    else:
-                        st.write(":material/chat_bubble_outline: No comments")
-                        
-                with col3:
-                    st.write(f":material/date_range: *{row['timestamp'].split()[0]}*")  # Just the date
-
-                st.markdown("---")
+        st.write("**RSVP Gästeliste**")
+        # Zeige alle Gäste mit Kontaktperson, Essenspräferenz und Unverträglichkeiten
+        guest_df = df[df['attending'] == 'Ja'].copy()
+        if guest_df.empty:
+            st.info(":material/inbox: Noch keine Zusagen.")
+        else:
+            # Sortiere nach Zeit, Kontaktperson, Gastname
+            guest_df = guest_df.sort_values(['timestamp', 'contact_name', 'guest_last_name', 'guest_first_name'], ascending=[False, True, True, True])
+            # Zeige Tabelle
+            st.dataframe(
+                guest_df[[
+                    'guest_first_name',
+                    'guest_last_name',
+                    'contact_name',
+                    'essenspräferenz',
+                    'dietary_requirements',
+                    'timestamp'
+                ]].rename(columns={
+                    'guest_first_name': 'Vorname',
+                    'guest_last_name': 'Nachname',
+                    'contact_name': 'Kontaktperson',
+                    'essenspräferenz': 'Essenspräferenz',
+                    'dietary_requirements': 'Unverträglichkeiten/Allergien',
+                    'timestamp': 'Zeitstempel'
+                }),
+                use_container_width=True
+            )
     else:
         st.info(":material/inbox: No RSVPs have been submitted yet.")
 
