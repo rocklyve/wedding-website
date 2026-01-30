@@ -172,16 +172,24 @@ def process_submission():
 
         # Sende Bestätigungs-E-Mail
         to_email = form_data.get('contact_email', '').strip()
+        organizer_email = "hochzeit@laubenstein.net"
         if to_email:
             if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
                 subject = "Bestätigung deiner Zusage zur Hochzeit"
                 body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026! Wir freuen uns sehr, dich dabei zu haben.\n\nViele Grüße!"
+                org_subject = "Neue Zusage zur Hochzeit erhalten"
+                org_body = f"Neue Zusage von: {form_data.get('contact_name', '')} ({to_email})\n\nGäste: {len(st.session_state.guests)}\nStatus: Zusage\n\nDetails siehe CSV."
             else:
                 subject = "Bestätigung deiner Absage zur Hochzeit"
                 body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Rückmeldung. Schade, dass du am 20.06.2026 nicht dabei sein kannst.\n\nViele Grüße!"
+                org_subject = "Absage zur Hochzeit erhalten"
+                org_body = f"Absage von: {form_data.get('contact_name', '')} ({to_email})\nStatus: Absage\n\nDetails siehe CSV."
             mail_success = send_confirmation_email(to_email, subject, body)
+            org_success = send_confirmation_email(organizer_email, org_subject, org_body)
             if not mail_success:
                 st.warning("Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.")
+            if not org_success:
+                st.warning("Hinweis: Die Benachrichtigung an den Veranstalter konnte nicht gesendet werden.")
 
         # Mark as successfully submitted
         st.session_state.form_submitted = True
