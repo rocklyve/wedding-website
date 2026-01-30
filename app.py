@@ -112,6 +112,8 @@ def process_submission():
     
     if not form_data.get('contact_name', '').strip():
         errors.append("Name der Hauptkontaktperson ist erforderlich")
+    if not form_data.get('contact_email', '').strip():
+        errors.append("E-Mail-Adresse ist erforderlich")
     
     if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
         for i, _ in enumerate(st.session_state.guests):
@@ -300,7 +302,7 @@ def rsvp_form_page():
             with contact_col1:
                 contact_name = st.text_input("Name der Hauptkontaktperson*", key="contact_name", width=300)
             with contact_col2:
-                contact_email = st.text_input("E-Mail-Adresse", key="contact_email", width=350)
+                contact_email = st.text_input("E-Mail-Adresse*", key="contact_email", width=350)
             with contact_col3:
                 contact_phone = st.text_input("Telefonnummer", key="contact_phone", width=200)
 
