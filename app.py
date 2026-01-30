@@ -126,11 +126,8 @@ def process_submission():
                 errors.append(f"Nachname von Gast {i + 1} ist erforderlich")
     
     if errors:
-        st.error("Bitte beheben Sie die folgenden Fehler:")
-        for error in errors:
-            st.error(f"• {error}")
-        
-        # Reset submission state on error
+        # Speichere Fehler im session_state, damit sie nach rerun angezeigt werden
+        st.session_state.form_errors = errors
         st.session_state.submission_in_progress = False
         return False
     
@@ -261,19 +258,22 @@ def rsvp_form_page():
                 st.image(st.secrets['wedding']['banner_image'])
         st.markdown("---")
 
+
         # Initialize session state
         initialize_session_state()
+
+        # Fehler-Alert oben im Formular anzeigen, falls vorhanden
+        if 'form_errors' in st.session_state and st.session_state.form_errors:
+            st.error("Bitte beheben Sie die folgenden Fehler:")
+            for error in st.session_state.form_errors:
+                st.markdown(f"<div style='color: #b00020; font-weight: bold; margin-bottom: 4px;'>• {error}</div>", unsafe_allow_html=True)
+            # Fehler nach Anzeige zurücksetzen
+            st.session_state.form_errors = []
 
         # Check if form has been successfully submitted
         if st.session_state.form_submitted:
             st.success(":material/check_circle: Zusage erfolgreich übermittelt! Vielen Dank für Ihre Rückmeldung.")
             st.balloons()
-
-            # if st.button("Weitere Antwort absenden", type="primary"):
-            #     reset_form()
-            #     st.rerun()
-
-            # st.info(":material/lightbulb: Wenn Sie eine weitere Antwort absenden oder Änderungen vornehmen möchten, klicken Sie bitte oben auf die Schaltfläche.")
             return
 
         # Check if submission is in progress
