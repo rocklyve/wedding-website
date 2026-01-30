@@ -171,18 +171,17 @@ def process_submission():
             save_rsvp(rsvp_data)
 
         # Sende Bestätigungs-E-Mail
-        try:
-            to_email = form_data.get('contact_email', '').strip()
-            if to_email:
-                if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
-                    subject = "Bestätigung deiner Zusage zur Hochzeit"
-                    body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026! Wir freuen uns sehr, dich dabei zu haben.\n\nViele Grüße!"
-                else:
-                    subject = "Bestätigung deiner Absage zur Hochzeit"
-                    body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Rückmeldung. Schade, dass du am 20.06.2026 nicht dabei sein kannst.\n\nViele Grüße!"
-                send_confirmation_email(to_email, subject, body)
-        except Exception as e:
-            st.warning(f"Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden: {e}")
+        to_email = form_data.get('contact_email', '').strip()
+        if to_email:
+            if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
+                subject = "Bestätigung deiner Zusage zur Hochzeit"
+                body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026! Wir freuen uns sehr, dich dabei zu haben.\n\nViele Grüße!"
+            else:
+                subject = "Bestätigung deiner Absage zur Hochzeit"
+                body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Rückmeldung. Schade, dass du am 20.06.2026 nicht dabei sein kannst.\n\nViele Grüße!"
+            mail_success = send_confirmation_email(to_email, subject, body)
+            if not mail_success:
+                st.warning("Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.")
 
         # Mark as successfully submitted
         st.session_state.form_submitted = True
