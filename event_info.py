@@ -5,7 +5,7 @@ def event_info_page():
     with main_col:
         st.title(f":material/celebration: Die Hochzeit von {st.secrets['wedding']['wedding_couple']}")
         # Link zur RSVP-Form oben einfügen
-        st.markdown("[Zur Zu/Absage →](?page=RSVP%20Form)", unsafe_allow_html=True)
+        st.markdown("[Zur Zu/Absage →](/rsvp_form_page)", unsafe_allow_html=True)
         st.write(st.secrets['event']['welcome_text'])
 
         st.markdown("---")
