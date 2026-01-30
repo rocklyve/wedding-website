@@ -477,9 +477,9 @@ def _run_admin_navigation():
 def _run_public_navigation():
     """Public navigation - top navigation bar with RSVP, Event Info, and Admin Login"""
     pages = [
-        st.Page(rsvp_form_page, title="RSVP Form", icon=":material/favorite:", default=True),
-        st.Page(event_info_page, title="Event Information", icon=":material/celebration:"),
-        st.Page(admin_login_page, title="Admin Login", icon=":material/lock:"),
+        st.Page(event_info_page, title="Information", icon=":material/celebration:", default=True),
+        st.Page(rsvp_form_page, title="Zu/Absage", icon=":material/favorite:"),
+        st.Page(admin_login_page, title="Admin Bereich", icon=":material/lock:"),
     ]
     pg = st.navigation(pages, position="top")
     pg.run()
