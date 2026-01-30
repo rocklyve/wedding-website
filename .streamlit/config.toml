@@ -1,0 +1,37 @@
+[[theme.fontFaces]]
+family="josefin-sans"
+url="app/static/JosefinSans-Regular.ttf"
+style="normal"
+weight=400
+
+[ui]
+welcome_message = "Wir freuen uns, unseren besonderen Tag mit dir/euch zu feiern! Bitte gib uns Bescheid, ob du/ihr dabei sein wirst."
+
+[theme]
+base = "light"
+primaryColor="#B7D7C9"  # Eukalyptusgrün
+backgroundColor="#f1f1f1ff"
+secondaryBackgroundColor="#FAEEF3"  # Sehr helles Pastellrosa (dezenter Hintergrund)
+codeBackgroundColor="#E3F9E5"  # Sehr helles Grün
+baseRadius = "medium"
+showWidgetBorder = true
+baseFontSize = 14
+font="josefin-sans"
+headingFont="josefin-sans"
+blueColor="#B7D7C9"
+
+[theme.sidebar]
+backgroundColor="#E8F6EF"  # Sehr helles Eukalyptusgrün
+secondaryBackgroundColor="#FAEEF3"  # Sehr helles Pastellrosa (dezenter Hintergrund)
+
+[server]
+enableCORS = false
+enableXsrfProtection = false
+headless = true
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "auto"
