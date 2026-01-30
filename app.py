@@ -176,9 +176,20 @@ def process_submission():
         if to_email:
             if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
                 subject = "Bestätigung deiner Zusage zur Hochzeit"
-                body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026! Wir freuen uns sehr, dich dabei zu haben.\n\nViele Grüße!"
+                # Liste aller angemeldeten Gäste
+                gast_liste = []
+                for i, _ in enumerate(st.session_state.guests):
+                    vorname = form_data.get(f"guest_first_name_{i}", "").strip()
+                    nachname = form_data.get(f"guest_last_name_{i}", "").strip()
+                    if vorname or nachname:
+                        gast_liste.append(f"- {vorname} {nachname}")
+                gast_text = "\n".join(gast_liste)
+                if len(gast_liste) > 1:
+                    body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026!\n\nFolgende Gäste wurden erfolgreich angemeldet:\n{gast_text}\n\nWir freuen uns sehr, euch dabei zu haben!\n\nViele Grüße!"
+                else:
+                    body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Zusage zu unserer Hochzeit am 20.06.2026! Wir freuen uns sehr, dich dabei zu haben.\n\nViele Grüße!"
                 org_subject = "Neue Zusage zur Hochzeit erhalten"
-                org_body = f"Neue Zusage von: {form_data.get('contact_name', '')} ({to_email})\n\nGäste: {len(st.session_state.guests)}\nStatus: Zusage\n\nDetails siehe CSV."
+                org_body = f"Neue Zusage von: {form_data.get('contact_name', '')} ({to_email})\n\nGäste: {len(gast_liste)}\nAngemeldete Personen:\n{gast_text}\nStatus: Zusage\n\nDetails siehe CSV."
             else:
                 subject = "Bestätigung deiner Absage zur Hochzeit"
                 body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Rückmeldung. Schade, dass du am 20.06.2026 nicht dabei sein kannst.\n\nViele Grüße!"
