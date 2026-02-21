@@ -132,8 +132,8 @@ def load_gift_registry():
             return df
         except Exception as e:
             st.error(f"Error loading gift registry: {e}")
-            return pd.DataFrame(columns=['name', 'description', 'url', 'purchased', 'purchased_by'])
-    return pd.DataFrame(columns=['name', 'description', 'url', 'purchased', 'purchased_by'])
+            return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'purchased_by'])
+    return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'purchased_by'])
 
 def save_gift_registry(df):
     """Save gift registry dataframe to CSV file"""
@@ -151,4 +151,20 @@ def mark_gift_as_purchased(gift_index, buyer_name):
         df.at[gift_index, 'purchased'] = True
         df.at[gift_index, 'purchased_by'] = buyer_name
         return save_gift_registry(df)
+    return False
+
+def unmark_gift_as_purchased(gift_index, buyer_name):
+    """Unmark a gift as purchased - only if the buyer name matches"""
+    df = load_gift_registry()
+    if 0 <= gift_index < len(df):
+        # Check if the buyer name matches (case-insensitive)
+        stored_name = str(df.at[gift_index, 'purchased_by']).strip().lower()
+        input_name = buyer_name.strip().lower()
+        
+        if stored_name == input_name:
+            df.at[gift_index, 'purchased'] = False
+            df.at[gift_index, 'purchased_by'] = ''
+            return save_gift_registry(df)
+        else:
+            return False  # Name doesn't match
     return False

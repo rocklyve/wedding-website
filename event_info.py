@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import load_gift_registry, mark_gift_as_purchased
+from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased
 
 def event_info_page():
     left_spacer, main_col, right_spacer = st.columns([2, 5, 2])
@@ -247,76 +247,109 @@ def event_info_page():
                 
                 if not gift_df.empty:
                     # Info message about contacting if something is wrong
-                    st.info("💡 Falls ein Artikel versehentlich als gekauft markiert wurde oder andere Probleme auftreten, wendet euch bitte an die Ansprechpartner im Kontakt-Tab.")
+                    st.info("💡 Falls andere Probleme auftreten, wendet euch bitte an die Ansprechpartner im Kontakt-Tab.")
                     
-                    # Display gifts in a table
                     st.write("")
                     
-                    # Create table header
-                    header_cols = st.columns([2.5, 3.5, 2, 2])
-                    with header_cols[0]:
-                        st.markdown("**Artikel**")
-                    with header_cols[1]:
-                        st.markdown("**Beschreibung**")
-                    with header_cols[2]:
-                        st.markdown("**Link**")
-                    with header_cols[3]:
-                        st.markdown("**Status**")
+                    # Display gifts as cards in a grid (3 columns)
+                    num_cols = 3
+                    rows = [gift_df.iloc[i:i+num_cols] for i in range(0, len(gift_df), num_cols)]
                     
-                    st.markdown("---")
-                    
-                    # Display each gift
-                    for idx, row in gift_df.iterrows():
-                        cols = st.columns([2.5, 3.5, 2, 2])
+                    for row_items in rows:
+                        cols = st.columns(num_cols)
                         
-                        with cols[0]:
-                            st.write(row['name'])
-                        
-                        with cols[1]:
-                            st.write(row['description'])
-                        
-                        with cols[2]:
-                            if row['url'] and row['url'].strip():
-                                st.markdown(f"[Zum Produkt]({row['url']})")
-                            else:
-                                st.write("-")
-                        
-                        with cols[3]:
-                            if row['purchased']:
-                                st.success("✓ Gekauft")
-                            else:
-                                # Check if we're in confirmation mode for this item
-                                confirm_key = f'confirm_{idx}'
-                                
-                                if not st.session_state.get(confirm_key, False):
-                                    # Show initial button
-                                    if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="secondary"):
-                                        st.session_state[confirm_key] = True
-                                        st.rerun()
-                                else:
-                                    # Show confirmation form
-                                    with st.form(key=f"confirm_form_{idx}"):
-                                        st.write("Möchtest du diesen Artikel wirklich als gekauft markieren?")
-                                        buyer_name = st.text_input("Dein Name (optional):", placeholder="z.B. Max Mustermann")
+                        for col_idx, (idx, item) in enumerate(row_items.iterrows()):
+                            with cols[col_idx]:
+                                # Create a card container
+                                with st.container(border=True):
+                                    # Display image
+                                    if item.get('image_url') and item['image_url'].strip():
+                                        st.image(item['image_url'], use_container_width=True)
+                                    
+                                    # Title
+                                    st.markdown(f"### {item['name']}")
+                                    
+                                    # Description
+                                    st.write(item['description'])
+                                    
+                                    st.write("")
+                                    
+                                    # Product link
+                                    if item['url'] and item['url'].strip():
+                                        st.markdown(f"[:material/link: Zum Produkt]({item['url']})")
+                                    
+                                    st.write("")
+                                    
+                                    # Status and action buttons
+                                    if item['purchased']:
+                                        st.success("✓ Bereits gekauft")
                                         
-                                        col_yes, col_no = st.columns(2)
-                                        with col_yes:
-                                            submit = st.form_submit_button("✓ Ja, bestätigen", type="primary")
-                                        with col_no:
-                                            cancel = st.form_submit_button("✗ Abbrechen")
+                                        # Show undo option
+                                        undo_key = f'undo_{idx}'
                                         
-                                        if submit:
-                                            if mark_gift_as_purchased(idx, buyer_name if buyer_name else 'Gast'):
-                                                st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
-                                                st.session_state[confirm_key] = False
+                                        if not st.session_state.get(undo_key, False):
+                                            if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", use_container_width=True):
+                                                st.session_state[undo_key] = True
                                                 st.rerun()
-                                            else:
-                                                st.error("Fehler beim Speichern. Bitte versuche es erneut.")
-                                        elif cancel:
-                                            st.session_state[confirm_key] = False
-                                            st.rerun()
-                        
-                        st.markdown("---")
+                                        else:
+                                            # Show undo confirmation form
+                                            with st.form(key=f"undo_form_{idx}"):
+                                                st.write("Möchtest du die Markierung wirklich rückgängig machen?")
+                                                undo_name = st.text_input("Dein Name zur Bestätigung:", placeholder="z.B. Max Mustermann", key=f"undo_name_input_{idx}")
+                                                
+                                                col_yes, col_no = st.columns(2)
+                                                with col_yes:
+                                                    undo_submit = st.form_submit_button("✓ Bestätigen", type="primary")
+                                                with col_no:
+                                                    undo_cancel = st.form_submit_button("✗ Abbrechen")
+                                                
+                                                if undo_submit:
+                                                    if undo_name.strip():
+                                                        if unmark_gift_as_purchased(idx, undo_name):
+                                                            st.success("Die Markierung wurde rückgängig gemacht.")
+                                                            st.session_state[undo_key] = False
+                                                            st.rerun()
+                                                        else:
+                                                            st.error("Der eingegebene Name stimmt nicht überein. Nur die Person, die den Artikel markiert hat, kann dies rückgängig machen.")
+                                                    else:
+                                                        st.error("Bitte gib deinen Namen ein.")
+                                                elif undo_cancel:
+                                                    st.session_state[undo_key] = False
+                                                    st.rerun()
+                                    else:
+                                        # Check if we're in confirmation mode for this item
+                                        confirm_key = f'confirm_{idx}'
+                                        
+                                        if not st.session_state.get(confirm_key, False):
+                                            # Show initial button
+                                            if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="primary", use_container_width=True):
+                                                st.session_state[confirm_key] = True
+                                                st.rerun()
+                                        else:
+                                            # Show confirmation form
+                                            with st.form(key=f"confirm_form_{idx}"):
+                                                st.write("Möchtest du diesen Artikel wirklich als gekauft markieren?")
+                                                buyer_name = st.text_input("Dein Name:", placeholder="z.B. Max Mustermann", key=f"buyer_name_input_{idx}")
+                                                
+                                                col_yes, col_no = st.columns(2)
+                                                with col_yes:
+                                                    submit = st.form_submit_button("✓ Bestätigen", type="primary")
+                                                with col_no:
+                                                    cancel = st.form_submit_button("✗ Abbrechen")
+                                                
+                                                if submit:
+                                                    if buyer_name.strip():
+                                                        if mark_gift_as_purchased(idx, buyer_name):
+                                                            st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
+                                                            st.session_state[confirm_key] = False
+                                                            st.rerun()
+                                                        else:
+                                                            st.error("Fehler beim Speichern. Bitte versuche es erneut.")
+                                                    else:
+                                                        st.error("Bitte gib deinen Namen ein.")
+                                                elif cancel:
+                                                    st.session_state[confirm_key] = False
+                                                    st.rerun()
                 else:
                     st.info("Die Geschenkliste wird in Kürze verfügbar sein.")
 
