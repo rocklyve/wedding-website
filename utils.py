@@ -4,15 +4,36 @@ import os
 from datetime import datetime, timedelta
 import pytz
 import uuid
+import streamlit.components.v1 as components
 
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
 
-def get_session_id():
-    """Get or create a unique session ID for this browser session"""
-    if 'user_session_id' not in st.session_state:
-        st.session_state.user_session_id = str(uuid.uuid4())
-    return st.session_state.user_session_id
+def get_browser_id():
+    """Get or create a persistent browser ID using localStorage"""
+    # JavaScript to read/write from localStorage
+    component_value = components.html(
+        """
+        <script>
+        // Get or create a unique browser ID
+        let browserId = localStorage.getItem('wedding_browser_id');
+        if (!browserId) {
+            browserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('wedding_browser_id', browserId);
+        }
+        // Send the ID back to Streamlit
+        window.parent.postMessage({type: 'streamlit:setComponentValue', value: browserId}, '*');
+        </script>
+        """,
+        height=0,
+    )
+    
+    # Store in session state once received
+    if component_value:
+        st.session_state.browser_id = component_value
+    
+    # Return from session state (will be available after first load)
+    return st.session_state.get('browser_id', 'temp_' + str(uuid.uuid4()))
 
 def load_rsvps():
     """Load existing RSVP data from CSV file"""
@@ -152,35 +173,35 @@ def save_gift_registry(df):
         return False
 
 def mark_gift_as_purchased(gift_index):
-    """Mark a gift as purchased by the current session"""
+    """Mark a gift as purchased by the current browser"""
     df = load_gift_registry()
     if 0 <= gift_index < len(df):
         df.at[gift_index, 'purchased'] = True
-        df.at[gift_index, 'session_id'] = get_session_id()
+        df.at[gift_index, 'session_id'] = get_browser_id()
         return save_gift_registry(df)
     return False
 
 def unmark_gift_as_purchased(gift_index):
-    """Unmark a gift as purchased - only if the session ID matches"""
+    """Unmark a gift as purchased - only if the browser ID matches"""
     df = load_gift_registry()
     if 0 <= gift_index < len(df):
-        # Check if the session ID matches
-        stored_session = str(df.at[gift_index, 'session_id']).strip()
-        current_session = get_session_id()
+        # Check if the browser ID matches
+        stored_browser = str(df.at[gift_index, 'session_id']).strip()
+        current_browser = get_browser_id()
         
-        if stored_session == current_session:
+        if stored_browser == current_browser:
             df.at[gift_index, 'purchased'] = False
             df.at[gift_index, 'session_id'] = ''
             return save_gift_registry(df)
         else:
-            return False  # Session doesn't match
+            return False  # Browser doesn't match
     return False
 
 def can_undo_purchase(gift_index):
-    """Check if the current session can undo the purchase of this gift"""
+    """Check if the current browser can undo the purchase of this gift"""
     df = load_gift_registry()
     if 0 <= gift_index < len(df):
-        stored_session = str(df.at[gift_index, 'session_id']).strip()
-        current_session = get_session_id()
-        return stored_session == current_session
+        stored_browser = str(df.at[gift_index, 'session_id']).strip()
+        current_browser = get_browser_id()
+        return stored_browser == current_browser
     return False

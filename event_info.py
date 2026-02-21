@@ -1,7 +1,10 @@
 import streamlit as st
-from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase
+from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase, get_browser_id
 
 def event_info_page():
+    # Initialize browser ID for persistent gift tracking
+    _ = get_browser_id()
+    
     left_spacer, main_col, right_spacer = st.columns([2, 5, 2])
     with main_col:
         st.title(f":material/celebration: Die Hochzeit von {st.secrets['wedding']['wedding_couple']}")
@@ -247,7 +250,7 @@ def event_info_page():
                 
                 if not gift_df.empty:
                     # Info message about contacting if something is wrong
-                    st.info("💡 Falls andere Probleme auftreten, wendet euch bitte an die Ansprechpartner im Kontakt-Tab.")
+                    st.info("💡 Du kannst deine Markierung nur in diesem Browser rückgängig machen. Bei anderen Problemen wende dich an die Ansprechpartner im Kontakt-Tab.")
                     
                     st.write("")
                     
