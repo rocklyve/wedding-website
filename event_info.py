@@ -1,4 +1,5 @@
 import streamlit as st
+from utils import load_gift_registry, mark_gift_as_purchased
 
 def event_info_page():
     left_spacer, main_col, right_spacer = st.columns([2, 5, 2])
@@ -236,43 +237,90 @@ def event_info_page():
 
                     st.markdown("---")
 
-                registries = st.secrets['event'].get('registry')
-                if registries:
-                    valid_registries = [
-                        r for r in registries
-                        if r.get('name', '').strip() and r.get('url', '').strip()
-                    ]
-
-                    if valid_registries:
-                        st.subheader(":material/card_giftcard: Geschenkliste")
-                        st.write(st.secrets['event'].get('registry_message',
-                                'Eure Anwesenheit ist das größte Geschenk, aber falls ihr etwas schenken möchtet:'))
-
-                        reg_cols = st.columns(len(valid_registries))
-                        for idx, registry in enumerate(valid_registries):
-                            with reg_cols[idx]:
-                                st.markdown(f"""
-                                <div style='
-                                    text-align: center;
-                                    padding: 20px;
-                                    border: 1px solid #ddd;
-                                    border-radius: 10px;
-                                    background-color: #f9f9f9;
-                                '>
-                                    <h3>{registry['name']}</h3>
-                                    <a href='{registry['url']}' target='_blank' style='
-                                        text-decoration: none;
-                                        background-color: #4CAF50;
-                                        color: white;
-                                        padding: 10px 20px;
-                                        border-radius: 5px;
-                                        display: inline-block;
-                                        margin-top: 10px;
-                                    '>Zur Wunschliste</a>
-                                </div>
-                                """, unsafe_allow_html=True)
-
+                # Gift Registry from CSV
+                st.subheader(":material/card_giftcard: Geschenkliste")
+                st.write(st.secrets['event'].get('registry_message',
+                        'Eure Anwesenheit ist das größte Geschenk, aber falls ihr etwas schenken möchtet:'))
+                
+                # Load gift registry
+                gift_df = load_gift_registry()
+                
+                if not gift_df.empty:
+                    # Info message about contacting if something is wrong
+                    st.info("💡 Falls ein Artikel versehentlich als gekauft markiert wurde oder andere Probleme auftreten, wendet euch bitte an die Ansprechpartner im Kontakt-Tab.")
+                    
+                    # Display gifts in a table
+                    st.write("")
+                    
+                    # Create table header
+                    header_cols = st.columns([2.5, 3.5, 2, 2])
+                    with header_cols[0]:
+                        st.markdown("**Artikel**")
+                    with header_cols[1]:
+                        st.markdown("**Beschreibung**")
+                    with header_cols[2]:
+                        st.markdown("**Link**")
+                    with header_cols[3]:
+                        st.markdown("**Status**")
+                    
+                    st.markdown("---")
+                    
+                    # Display each gift
+                    for idx, row in gift_df.iterrows():
+                        cols = st.columns([2.5, 3.5, 2, 2])
+                        
+                        with cols[0]:
+                            st.write(row['name'])
+                        
+                        with cols[1]:
+                            st.write(row['description'])
+                        
+                        with cols[2]:
+                            if row['url'] and row['url'].strip():
+                                st.markdown(f"[Zum Produkt]({row['url']})")
+                            else:
+                                st.write("-")
+                        
+                        with cols[3]:
+                            if row['purchased']:
+                                st.success("✓ Gekauft")
+                            else:
+                                # Check if we're in confirmation mode for this item
+                                confirm_key = f'confirm_{idx}'
+                                
+                                if not st.session_state.get(confirm_key, False):
+                                    # Show initial button
+                                    if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="secondary"):
+                                        st.session_state[confirm_key] = True
+                                        st.rerun()
+                                else:
+                                    # Show confirmation form
+                                    with st.form(key=f"confirm_form_{idx}"):
+                                        st.write("Möchtest du diesen Artikel wirklich als gekauft markieren?")
+                                        buyer_name = st.text_input("Dein Name (optional):", placeholder="z.B. Max Mustermann")
+                                        
+                                        col_yes, col_no = st.columns(2)
+                                        with col_yes:
+                                            submit = st.form_submit_button("✓ Ja, bestätigen", type="primary")
+                                        with col_no:
+                                            cancel = st.form_submit_button("✗ Abbrechen")
+                                        
+                                        if submit:
+                                            if mark_gift_as_purchased(idx, buyer_name if buyer_name else 'Gast'):
+                                                st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
+                                                st.session_state[confirm_key] = False
+                                                st.rerun()
+                                            else:
+                                                st.error("Fehler beim Speichern. Bitte versuche es erneut.")
+                                        elif cancel:
+                                            st.session_state[confirm_key] = False
+                                            st.rerun()
+                        
                         st.markdown("---")
+                else:
+                    st.info("Die Geschenkliste wird in Kürze verfügbar sein.")
+
+                st.markdown("---")
 
                 additional_info = st.secrets['event'].get('additional_info')
                 if additional_info:

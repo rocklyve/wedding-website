@@ -118,3 +118,37 @@ def format_time_remaining(time_delta):
         return f"{hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}"
     else:
         return f"{minutes} minute{'s' if minutes != 1 else ''}"
+
+# Gift Registry utility functions
+GIFT_REGISTRY_FILE = "gift_registry.csv"
+
+def load_gift_registry():
+    """Load gift registry data from CSV file"""
+    if os.path.exists(GIFT_REGISTRY_FILE):
+        try:
+            df = pd.read_csv(GIFT_REGISTRY_FILE)
+            # Ensure purchased column is boolean
+            df['purchased'] = df['purchased'].astype(bool)
+            return df
+        except Exception as e:
+            st.error(f"Error loading gift registry: {e}")
+            return pd.DataFrame(columns=['name', 'description', 'url', 'purchased', 'purchased_by'])
+    return pd.DataFrame(columns=['name', 'description', 'url', 'purchased', 'purchased_by'])
+
+def save_gift_registry(df):
+    """Save gift registry dataframe to CSV file"""
+    try:
+        df.to_csv(GIFT_REGISTRY_FILE, index=False)
+        return True
+    except Exception as e:
+        st.error(f"Error saving gift registry: {e}")
+        return False
+
+def mark_gift_as_purchased(gift_index, buyer_name):
+    """Mark a gift as purchased by a specific person"""
+    df = load_gift_registry()
+    if 0 <= gift_index < len(df):
+        df.at[gift_index, 'purchased'] = True
+        df.at[gift_index, 'purchased_by'] = buyer_name
+        return save_gift_registry(df)
+    return False
