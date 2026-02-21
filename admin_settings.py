@@ -140,7 +140,7 @@ def admin_settings_page():
         # Save button
         col1, col2, col3 = st.columns([1, 1, 4])
         with col1:
-            if st.button(":material/save: Save Changes", type="primary", use_container_width=True):
+            if st.button(":material/save: Save Changes", type="primary", width='stretch'):
                 try:
                     # Create backup
                     backup_path = secrets_path + f".backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -164,7 +164,7 @@ def admin_settings_page():
                     st.error(f":material/error: Error saving settings: {str(e)}")
 
         with col2:
-            if st.button(":material/refresh: Reload File", use_container_width=True):
+            if st.button(":material/refresh: Reload File", width='stretch'):
                 if 'edited_secrets' in st.session_state:
                     del st.session_state.edited_secrets
                 st.rerun()

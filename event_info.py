@@ -264,7 +264,7 @@ def event_info_page():
                                 with st.container(border=True):
                                     # Display image
                                     if item.get('image_url') and item['image_url'].strip():
-                                        st.image(item['image_url'], use_container_width=True)
+                                        st.image(item['image_url'], width='stretch')
                                     
                                     # Title
                                     st.markdown(f"### {item['name']}")
@@ -289,7 +289,7 @@ def event_info_page():
                                             undo_key = f'undo_{idx}'
                                             
                                             if not st.session_state.get(undo_key, False):
-                                                if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", use_container_width=True):
+                                                if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", width='stretch'):
                                                     st.session_state[undo_key] = True
                                                     st.rerun()
                                             else:
@@ -297,7 +297,7 @@ def event_info_page():
                                                 st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
                                                 col_yes, col_no = st.columns(2)
                                                 with col_yes:
-                                                    if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", use_container_width=True):
+                                                    if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", width='stretch'):
                                                         if unmark_gift_as_purchased(idx):
                                                             st.success("Die Markierung wurde rückgängig gemacht.")
                                                             st.session_state[undo_key] = False
@@ -305,7 +305,7 @@ def event_info_page():
                                                         else:
                                                             st.error("Fehler beim Rückgängigmachen.")
                                                 with col_no:
-                                                    if st.button("✗ Nein", key=f"undo_no_{idx}", use_container_width=True):
+                                                    if st.button("✗ Nein", key=f"undo_no_{idx}", width='stretch'):
                                                         st.session_state[undo_key] = False
                                                         st.rerun()
                                     else:
@@ -314,7 +314,7 @@ def event_info_page():
                                         
                                         if not st.session_state.get(confirm_key, False):
                                             # Show initial button
-                                            if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="primary", use_container_width=True):
+                                            if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="primary", width='stretch'):
                                                 st.session_state[confirm_key] = True
                                                 st.rerun()
                                         else:
@@ -322,7 +322,7 @@ def event_info_page():
                                             st.warning("Möchtest du diesen Artikel wirklich als gekauft markieren?")
                                             col_yes, col_no = st.columns(2)
                                             with col_yes:
-                                                if st.button("✓ Ja", key=f"yes_{idx}", type="primary", use_container_width=True):
+                                                if st.button("✓ Ja", key=f"yes_{idx}", type="primary", width='stretch'):
                                                     if mark_gift_as_purchased(idx):
                                                         st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
                                                         st.session_state[confirm_key] = False
@@ -330,7 +330,7 @@ def event_info_page():
                                                     else:
                                                         st.error("Fehler beim Speichern. Bitte versuche es erneut.")
                                             with col_no:
-                                                if st.button("✗ Nein", key=f"no_{idx}", use_container_width=True):
+                                                if st.button("✗ Nein", key=f"no_{idx}", width='stretch'):
                                                     st.session_state[confirm_key] = False
                                                     st.rerun()
                 else:

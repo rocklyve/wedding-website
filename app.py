@@ -465,7 +465,7 @@ def _run_admin_navigation():
 
     # Add logout button to sidebar
     with st.sidebar:
-        if st.button(":material/logout: Logout", type="secondary", use_container_width=True):
+        if st.button(":material/logout: Logout", type="secondary", width='stretch'):
             st.session_state.authenticated = False
             st.session_state.just_logged_in = False
             st.success("Successfully logged out!")

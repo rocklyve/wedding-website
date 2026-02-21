@@ -139,7 +139,7 @@ def admin_summary_page():
                     'dietary_requirements': 'Unverträglichkeiten/Allergien',
                     'timestamp': 'Zeitstempel'
                 }),
-                use_container_width=True
+                width='stretch'
             )
     else:
         st.info(":material/inbox: No RSVPs have been submitted yet.")
