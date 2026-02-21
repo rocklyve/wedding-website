@@ -249,8 +249,8 @@ def event_info_page():
                 gift_df = load_gift_registry()
                 
                 if not gift_df.empty:
-                    # Info message about contacting if something is wrong
-                    st.info("💡 Du kannst deine Markierung nur in diesem Browser rückgängig machen. Bei anderen Problemen wende dich an die Ansprechpartner im Kontakt-Tab.")
+                    # Info message
+                    st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden automatisch in deinem Browser gespeichert.")
                     
                     st.write("")
                     

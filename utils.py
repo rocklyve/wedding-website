@@ -4,36 +4,64 @@ import os
 from datetime import datetime, timedelta
 import pytz
 import uuid
+import random
+import string
 import streamlit.components.v1 as components
 
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
 
 def get_browser_id():
-    """Get or create a persistent browser ID using localStorage"""
-    # JavaScript to read/write from localStorage
-    component_value = components.html(
+    """Get or create a persistent browser ID using cookies"""
+    
+    # JavaScript to manage cookies
+    browser_id = components.html(
         """
         <script>
-        // Get or create a unique browser ID
-        let browserId = localStorage.getItem('wedding_browser_id');
-        if (!browserId) {
-            browserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('wedding_browser_id', browserId);
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
         }
-        // Send the ID back to Streamlit
-        window.parent.postMessage({type: 'streamlit:setComponentValue', value: browserId}, '*');
+        
+        function setCookie(name, value, days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+        
+        // Get or create browser ID
+        let browserId = getCookie('wedding_user_id');
+        if (!browserId) {
+            browserId = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+            setCookie('wedding_user_id', browserId, 365); // Cookie expires in 1 year
+        }
+        
+        // Return the ID to Streamlit
+        window.parent.postMessage({
+            type: 'streamlit:setComponentValue',
+            value: browserId
+        }, '*');
         </script>
         """,
         height=0,
     )
     
-    # Store in session state once received
-    if component_value:
-        st.session_state.browser_id = component_value
+    # If we got a value from the component, store it in session state
+    if browser_id:
+        st.session_state.browser_id = browser_id
+        return browser_id
     
-    # Return from session state (will be available after first load)
-    return st.session_state.get('browser_id', 'temp_' + str(uuid.uuid4()))
+    # Return from session state if available, otherwise generate temporary ID
+    if 'browser_id' in st.session_state:
+        return st.session_state.browser_id
+    
+    # Generate temporary ID (will be replaced when component loads)
+    temp_id = 'temp_' + str(uuid.uuid4())[:8]
+    st.session_state.browser_id = temp_id
+    return temp_id
 
 def load_rsvps():
     """Load existing RSVP data from CSV file"""
