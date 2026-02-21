@@ -3,9 +3,16 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 import pytz
+import uuid
 
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
+
+def get_session_id():
+    """Get or create a unique session ID for this browser session"""
+    if 'user_session_id' not in st.session_state:
+        st.session_state.user_session_id = str(uuid.uuid4())
+    return st.session_state.user_session_id
 
 def load_rsvps():
     """Load existing RSVP data from CSV file"""
@@ -132,8 +139,8 @@ def load_gift_registry():
             return df
         except Exception as e:
             st.error(f"Error loading gift registry: {e}")
-            return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'purchased_by'])
-    return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'purchased_by'])
+            return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id'])
+    return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id'])
 
 def save_gift_registry(df):
     """Save gift registry dataframe to CSV file"""
@@ -144,27 +151,36 @@ def save_gift_registry(df):
         st.error(f"Error saving gift registry: {e}")
         return False
 
-def mark_gift_as_purchased(gift_index, buyer_name):
-    """Mark a gift as purchased by a specific person"""
+def mark_gift_as_purchased(gift_index):
+    """Mark a gift as purchased by the current session"""
     df = load_gift_registry()
     if 0 <= gift_index < len(df):
         df.at[gift_index, 'purchased'] = True
-        df.at[gift_index, 'purchased_by'] = buyer_name
+        df.at[gift_index, 'session_id'] = get_session_id()
         return save_gift_registry(df)
     return False
 
-def unmark_gift_as_purchased(gift_index, buyer_name):
-    """Unmark a gift as purchased - only if the buyer name matches"""
+def unmark_gift_as_purchased(gift_index):
+    """Unmark a gift as purchased - only if the session ID matches"""
     df = load_gift_registry()
     if 0 <= gift_index < len(df):
-        # Check if the buyer name matches (case-insensitive)
-        stored_name = str(df.at[gift_index, 'purchased_by']).strip().lower()
-        input_name = buyer_name.strip().lower()
+        # Check if the session ID matches
+        stored_session = str(df.at[gift_index, 'session_id']).strip()
+        current_session = get_session_id()
         
-        if stored_name == input_name:
+        if stored_session == current_session:
             df.at[gift_index, 'purchased'] = False
-            df.at[gift_index, 'purchased_by'] = ''
+            df.at[gift_index, 'session_id'] = ''
             return save_gift_registry(df)
         else:
-            return False  # Name doesn't match
+            return False  # Session doesn't match
+    return False
+
+def can_undo_purchase(gift_index):
+    """Check if the current session can undo the purchase of this gift"""
+    df = load_gift_registry()
+    if 0 <= gift_index < len(df):
+        stored_session = str(df.at[gift_index, 'session_id']).strip()
+        current_session = get_session_id()
+        return stored_session == current_session
     return False

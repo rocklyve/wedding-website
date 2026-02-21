@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased
+from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase
 
 def event_info_page():
     left_spacer, main_col, right_spacer = st.columns([2, 5, 2])
@@ -284,38 +284,30 @@ def event_info_page():
                                     if item['purchased']:
                                         st.success("✓ Bereits gekauft")
                                         
-                                        # Show undo option
-                                        undo_key = f'undo_{idx}'
-                                        
-                                        if not st.session_state.get(undo_key, False):
-                                            if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", use_container_width=True):
-                                                st.session_state[undo_key] = True
-                                                st.rerun()
-                                        else:
-                                            # Show undo confirmation form
-                                            with st.form(key=f"undo_form_{idx}"):
-                                                st.write("Möchtest du die Markierung wirklich rückgängig machen?")
-                                                undo_name = st.text_input("Dein Name zur Bestätigung:", placeholder="z.B. Max Mustermann", key=f"undo_name_input_{idx}")
-                                                
+                                        # Show undo option only if this session purchased it
+                                        if can_undo_purchase(idx):
+                                            undo_key = f'undo_{idx}'
+                                            
+                                            if not st.session_state.get(undo_key, False):
+                                                if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", use_container_width=True):
+                                                    st.session_state[undo_key] = True
+                                                    st.rerun()
+                                            else:
+                                                # Show undo confirmation
+                                                st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
                                                 col_yes, col_no = st.columns(2)
                                                 with col_yes:
-                                                    undo_submit = st.form_submit_button("✓ Bestätigen", type="primary")
-                                                with col_no:
-                                                    undo_cancel = st.form_submit_button("✗ Abbrechen")
-                                                
-                                                if undo_submit:
-                                                    if undo_name.strip():
-                                                        if unmark_gift_as_purchased(idx, undo_name):
+                                                    if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", use_container_width=True):
+                                                        if unmark_gift_as_purchased(idx):
                                                             st.success("Die Markierung wurde rückgängig gemacht.")
                                                             st.session_state[undo_key] = False
                                                             st.rerun()
                                                         else:
-                                                            st.error("Der eingegebene Name stimmt nicht überein. Nur die Person, die den Artikel markiert hat, kann dies rückgängig machen.")
-                                                    else:
-                                                        st.error("Bitte gib deinen Namen ein.")
-                                                elif undo_cancel:
-                                                    st.session_state[undo_key] = False
-                                                    st.rerun()
+                                                            st.error("Fehler beim Rückgängigmachen.")
+                                                with col_no:
+                                                    if st.button("✗ Nein", key=f"undo_no_{idx}", use_container_width=True):
+                                                        st.session_state[undo_key] = False
+                                                        st.rerun()
                                     else:
                                         # Check if we're in confirmation mode for this item
                                         confirm_key = f'confirm_{idx}'
@@ -326,28 +318,19 @@ def event_info_page():
                                                 st.session_state[confirm_key] = True
                                                 st.rerun()
                                         else:
-                                            # Show confirmation form
-                                            with st.form(key=f"confirm_form_{idx}"):
-                                                st.write("Möchtest du diesen Artikel wirklich als gekauft markieren?")
-                                                buyer_name = st.text_input("Dein Name:", placeholder="z.B. Max Mustermann", key=f"buyer_name_input_{idx}")
-                                                
-                                                col_yes, col_no = st.columns(2)
-                                                with col_yes:
-                                                    submit = st.form_submit_button("✓ Bestätigen", type="primary")
-                                                with col_no:
-                                                    cancel = st.form_submit_button("✗ Abbrechen")
-                                                
-                                                if submit:
-                                                    if buyer_name.strip():
-                                                        if mark_gift_as_purchased(idx, buyer_name):
-                                                            st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
-                                                            st.session_state[confirm_key] = False
-                                                            st.rerun()
-                                                        else:
-                                                            st.error("Fehler beim Speichern. Bitte versuche es erneut.")
+                                            # Show confirmation
+                                            st.warning("Möchtest du diesen Artikel wirklich als gekauft markieren?")
+                                            col_yes, col_no = st.columns(2)
+                                            with col_yes:
+                                                if st.button("✓ Ja", key=f"yes_{idx}", type="primary", use_container_width=True):
+                                                    if mark_gift_as_purchased(idx):
+                                                        st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
+                                                        st.session_state[confirm_key] = False
+                                                        st.rerun()
                                                     else:
-                                                        st.error("Bitte gib deinen Namen ein.")
-                                                elif cancel:
+                                                        st.error("Fehler beim Speichern. Bitte versuche es erneut.")
+                                            with col_no:
+                                                if st.button("✗ Nein", key=f"no_{idx}", use_container_width=True):
                                                     st.session_state[confirm_key] = False
                                                     st.rerun()
                 else:
