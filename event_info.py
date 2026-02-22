@@ -256,7 +256,24 @@ def event_info_page():
                     with st.expander("🔧 Debug Info (zum Testen)"):
                         st.write(f"**Deine Browser-ID:** `{browser_id}`")
                         st.write(f"**ID bestätigt:** {st.session_state.get('browser_id_confirmed', False)}")
+                        st.write(f"**Cookie Manager Ready:** {st.session_state.get('cookie_manager_ready', False)}")
+                        
+                        # Show actual cookies
+                        if 'cookie_manager' in st.session_state:
+                            try:
+                                all_cookies = st.session_state.cookie_manager.cookies
+                                st.write(f"**Alle Cookies:** {all_cookies}")
+                            except:
+                                st.write("**Alle Cookies:** Fehler beim Lesen")
+                        
                         st.write(f"**Session State Keys:** {list(st.session_state.keys())}")
+                        
+                        # Button to clear session and test
+                        if st.button("🔄 Session zurücksetzen (Test)", key="reset_session_debug"):
+                            for key in ['browser_id', 'browser_id_confirmed', 'cookie_manager_ready']:
+                                if key in st.session_state:
+                                    del st.session_state[key]
+                            st.rerun()
                     
                     # Info message
                     if browser_id.startswith('temp_'):
