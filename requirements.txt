@@ -1,3 +1,4 @@
 streamlit
 watchdog
 pytz
+extra-streamlit-components

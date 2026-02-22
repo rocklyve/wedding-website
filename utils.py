@@ -6,75 +6,56 @@ import pytz
 import uuid
 import random
 import string
-import streamlit.components.v1 as components
+import extra_streamlit_components as stx
 
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
 
+# Cookie manager (singleton)
+@st.cache_resource
+def get_cookie_manager():
+    return stx.CookieManager()
+
 def get_browser_id():
     """Get or create a persistent browser ID using cookies"""
     
-    # Check if we already have a stable ID in session state
+    cookie_manager = get_cookie_manager()
+    
+    # Try to get existing cookie
+    try:
+        browser_id = cookie_manager.get(cookie='wedding_user_id')
+        
+        if browser_id:
+            st.session_state.browser_id = browser_id
+            st.session_state.browser_id_confirmed = True
+            return browser_id
+    except:
+        pass
+    
+    # If we have it in session state, return it
     if 'browser_id' in st.session_state and st.session_state.get('browser_id_confirmed', False):
         return st.session_state.browser_id
     
-    # JavaScript to manage cookies
-    browser_id = components.html(
-        """
-        <script>
-        function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
+    # Generate new ID if we don't have one
+    if 'browser_id' not in st.session_state or not st.session_state.browser_id or st.session_state.browser_id.startswith('temp_'):
+        new_id = 'usr_' + str(uuid.uuid4())[:12]
+        st.session_state.browser_id = new_id
         
-        function setCookie(name, value, days) {
-            let date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            let expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/;SameSite=Lax";
-        }
-        
-        // Get or create browser ID
-        let browserId = getCookie('wedding_user_id');
-        if (!browserId) {
-            browserId = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
-            setCookie('wedding_user_id', browserId, 365);
-        }
-        
-        // Return immediately - Streamlit will pick it up on next rerun
-        const value = browserId;
-        window.parent.postMessage({
-            type: 'streamlit:setComponentValue',
-            value: value
-        }, '*');
-        
-        // Also write to page for debugging
-        document.write('<div style="display:none">ID:' + value + '</div>');
-        </script>
-        """,
-        height=0,
-    )
-    
-    # Convert to string if it's not None and not already a string
-    if browser_id is not None:
-        browser_id_str = str(browser_id) if not isinstance(browser_id, str) else browser_id
-        
-        # If we got a valid ID from the component, store and confirm it
-        if browser_id_str and 'usr_' in browser_id_str:
-            st.session_state.browser_id = browser_id_str
+        # Set cookie
+        try:
+            cookie_manager.set(
+                cookie='wedding_user_id',
+                val=new_id,
+                max_age=365 * 24 * 60 * 60,  # 1 year in seconds
+                key='set_wedding_user_id'
+            )
             st.session_state.browser_id_confirmed = True
-            return browser_id_str
+        except:
+            pass
+        
+        return new_id
     
-    # Return from session state if available
-    if 'browser_id' in st.session_state:
-        return st.session_state.browser_id
-    
-    # Generate temporary ID (will be replaced when component loads)
-    temp_id = 'temp_' + str(uuid.uuid4())[:8]
-    st.session_state.browser_id = temp_id
-    return temp_id
+    return st.session_state.get('browser_id', 'temp_' + str(uuid.uuid4())[:8])
 
 def load_rsvps():
     """Load existing RSVP data from CSV file"""
