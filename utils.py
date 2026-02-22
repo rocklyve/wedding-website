@@ -4,83 +4,29 @@ import os
 from datetime import datetime, timedelta
 import pytz
 import uuid
-import random
-import string
-import extra_streamlit_components as stx
 
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
 
 def get_browser_id():
-    """Get or create a persistent browser ID using cookies"""
+    """Get or create a persistent browser ID using query params"""
     
-    # Create cookie manager only once per session
-    if 'cookie_manager' not in st.session_state:
-        st.session_state.cookie_manager = stx.CookieManager()
-        st.session_state.cookie_manager_ready = False
-    
-    cookie_manager = st.session_state.cookie_manager
-    
-    # First check if we already have a confirmed ID in session state
-    if st.session_state.get('browser_id_confirmed', False) and 'browser_id' in st.session_state:
-        return st.session_state.browser_id
-    
-    # Try to get all cookies (this is more reliable than get())
-    try:
-        all_cookies = cookie_manager.cookies
+    # Initialize from query params if not in session state
+    if 'browser_id' not in st.session_state:
+        # Try to get from URL query params
+        browser_id = st.query_params.get('uid', None)
         
-        if all_cookies and 'wedding_user_id' in all_cookies:
-            browser_id = all_cookies['wedding_user_id']
-            if browser_id and browser_id != 'None' and len(browser_id) > 5:
-                st.session_state.browser_id = browser_id
-                st.session_state.browser_id_confirmed = True
-                st.session_state.cookie_manager_ready = True
-                print(f"[DEBUG] Successfully read cookie: {browser_id}")
-                return browser_id
-    except Exception as e:
-        print(f"[DEBUG] Failed to read cookies: {e}")
-    
-    # Check if we need to wait for cookies to load
-    if not st.session_state.get('cookie_manager_ready', False):
-        # Give it one more chance - cookies might not be loaded yet
-        st.session_state.cookie_manager_ready = True
-        
-        # Return temp ID and trigger rerun to try reading cookie again
-        if 'browser_id' not in st.session_state:
-            temp_id = 'temp_' + str(uuid.uuid4())[:8]
-            st.session_state.browser_id = temp_id
-            print(f"[DEBUG] Cookies not ready yet, using temp ID: {temp_id}")
-            return temp_id
-    
-    # If we have a temp ID and cookies are ready, generate a real one
-    if 'browser_id' in st.session_state:
-        current_id = st.session_state.browser_id
-        if current_id.startswith('temp_') or not st.session_state.get('browser_id_confirmed', False):
+        if browser_id:
+            st.session_state.browser_id = browser_id
+            print(f"[DEBUG] Loaded browser ID from query params: {browser_id}")
+        else:
             # Generate new ID
             new_id = 'usr_' + str(uuid.uuid4())[:12]
             st.session_state.browser_id = new_id
-            
-            # Set cookie
-            try:
-                cookie_manager.set(
-                    cookie='wedding_user_id',
-                    val=new_id,
-                    max_age=365 * 24 * 60 * 60,  # 1 year in seconds
-                    key='set_wedding_user_id_' + str(uuid.uuid4())[:8]  # Unique key each time
-                )
-                st.session_state.browser_id_confirmed = True
-                print(f"[DEBUG] Set new cookie: {new_id}")
-            except Exception as e:
-                print(f"[DEBUG] Failed to set cookie: {e}")
-            
-            return new_id
-        return current_id
+            st.query_params['uid'] = new_id
+            print(f"[DEBUG] Generated new browser ID: {new_id}")
     
-    # Fallback: generate new ID
-    new_id = 'usr_' + str(uuid.uuid4())[:12]
-    st.session_state.browser_id = new_id
-    print(f"[DEBUG] Fallback: generated new ID: {new_id}")
-    return new_id
+    return st.session_state.browser_id
 
 def load_rsvps():
     """Load existing RSVP data from CSV file"""

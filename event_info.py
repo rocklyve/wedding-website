@@ -255,31 +255,17 @@ def event_info_page():
                     # Debug info (can be removed later)
                     with st.expander("🔧 Debug Info (zum Testen)"):
                         st.write(f"**Deine Browser-ID:** `{browser_id}`")
-                        st.write(f"**ID bestätigt:** {st.session_state.get('browser_id_confirmed', False)}")
-                        st.write(f"**Cookie Manager Ready:** {st.session_state.get('cookie_manager_ready', False)}")
-                        
-                        # Show actual cookies
-                        if 'cookie_manager' in st.session_state:
-                            try:
-                                all_cookies = st.session_state.cookie_manager.cookies
-                                st.write(f"**Alle Cookies:** {all_cookies}")
-                            except:
-                                st.write("**Alle Cookies:** Fehler beim Lesen")
-                        
+                        st.write(f"**Query Param 'uid':** `{st.query_params.get('uid', 'nicht gesetzt')}`")
                         st.write(f"**Session State Keys:** {list(st.session_state.keys())}")
                         
                         # Button to clear session and test
                         if st.button("🔄 Session zurücksetzen (Test)", key="reset_session_debug"):
-                            for key in ['browser_id', 'browser_id_confirmed', 'cookie_manager_ready']:
-                                if key in st.session_state:
-                                    del st.session_state[key]
+                            if 'browser_id' in st.session_state:
+                                del st.session_state['browser_id']
                             st.rerun()
                     
                     # Info message
-                    if browser_id.startswith('temp_'):
-                        st.warning("⚠️ Browser-ID wird geladen... Bitte warte kurz oder lade die Seite neu.")
-                    else:
-                        st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden automatisch in deinem Browser gespeichert.")
+                    st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden über die URL gespeichert - kopiere die URL, um später darauf zuzugreifen!")
                     
                     st.write("")
                     
