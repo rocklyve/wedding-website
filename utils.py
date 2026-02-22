@@ -11,15 +11,11 @@ import extra_streamlit_components as stx
 # CSV file path
 CSV_FILE = st.secrets["files"]["csv_file"]
 
-# Cookie manager (singleton)
-@st.cache_resource
-def get_cookie_manager():
-    return stx.CookieManager()
-
 def get_browser_id():
     """Get or create a persistent browser ID using cookies"""
     
-    cookie_manager = get_cookie_manager()
+    # Create cookie manager (not cached to avoid widget warnings)
+    cookie_manager = stx.CookieManager()
     
     # Try to get existing cookie
     try:
@@ -50,8 +46,8 @@ def get_browser_id():
                 key='set_wedding_user_id'
             )
             st.session_state.browser_id_confirmed = True
-        except:
-            pass
+        except Exception as e:
+            print(f"[DEBUG] Failed to set cookie: {e}")
         
         return new_id
     
