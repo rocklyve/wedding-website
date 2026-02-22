@@ -252,18 +252,6 @@ def event_info_page():
                     # Get browser ID
                     browser_id = get_browser_id()
                     
-                    # Debug info (can be removed later)
-                    with st.expander("🔧 Debug Info (zum Testen)"):
-                        st.write(f"**Deine Browser-ID:** `{browser_id}`")
-                        st.write(f"**Query Param 'uid':** `{st.query_params.get('uid', 'nicht gesetzt')}`")
-                        st.write(f"**Session State Keys:** {list(st.session_state.keys())}")
-                        
-                        # Button to clear session and test
-                        if st.button("🔄 Session zurücksetzen (Test)", key="reset_session_debug"):
-                            if 'browser_id' in st.session_state:
-                                del st.session_state['browser_id']
-                            st.rerun()
-                    
                     # Info message
                     st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden über die URL gespeichert - kopiere die URL, um später darauf zuzugreifen!")
                     
