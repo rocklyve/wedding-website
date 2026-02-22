@@ -57,11 +57,15 @@ def get_browser_id():
         height=0,
     )
     
-    # If we got a value from the component, store and confirm it
-    if browser_id and browser_id.startswith('usr_'):
-        st.session_state.browser_id = browser_id
-        st.session_state.browser_id_confirmed = True
-        return browser_id
+    # Convert to string if it's not None and not already a string
+    if browser_id is not None:
+        browser_id_str = str(browser_id) if not isinstance(browser_id, str) else browser_id
+        
+        # If we got a valid ID from the component, store and confirm it
+        if browser_id_str and 'usr_' in browser_id_str:
+            st.session_state.browser_id = browser_id_str
+            st.session_state.browser_id_confirmed = True
+            return browser_id_str
     
     # Return from session state if available
     if 'browser_id' in st.session_state:
