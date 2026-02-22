@@ -249,8 +249,20 @@ def event_info_page():
                 gift_df = load_gift_registry()
                 
                 if not gift_df.empty:
+                    # Get browser ID
+                    browser_id = get_browser_id()
+                    
+                    # Debug info (can be removed later)
+                    with st.expander("🔧 Debug Info (zum Testen)"):
+                        st.write(f"**Deine Browser-ID:** `{browser_id}`")
+                        st.write(f"**ID bestätigt:** {st.session_state.get('browser_id_confirmed', False)}")
+                        st.write(f"**Session State Keys:** {list(st.session_state.keys())}")
+                    
                     # Info message
-                    st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden automatisch in deinem Browser gespeichert.")
+                    if browser_id.startswith('temp_'):
+                        st.warning("⚠️ Browser-ID wird geladen... Bitte warte kurz oder lade die Seite neu.")
+                    else:
+                        st.info("💡 Du kannst nur deine eigenen Markierungen rückgängig machen. Diese werden automatisch in deinem Browser gespeichert.")
                     
                     st.write("")
                     
@@ -286,6 +298,12 @@ def event_info_page():
                                     # Status and action buttons
                                     if item['purchased']:
                                         st.success("✓ Bereits gekauft")
+                                        
+                                        # Debug info
+                                        with st.expander("🔍 Debug: Kaufinfo"):
+                                            st.write(f"**Gespeicherte ID:** `{item.get('session_id', 'keine')}`")
+                                            st.write(f"**Deine ID:** `{get_browser_id()}`")
+                                            st.write(f"**Kannst rückgängig machen:** {can_undo_purchase(idx)}")
                                         
                                         # Show undo option only if this session purchased it
                                         if can_undo_purchase(idx):

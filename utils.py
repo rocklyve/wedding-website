@@ -14,6 +14,10 @@ CSV_FILE = st.secrets["files"]["csv_file"]
 def get_browser_id():
     """Get or create a persistent browser ID using cookies"""
     
+    # Check if we already have a stable ID in session state
+    if 'browser_id' in st.session_state and st.session_state.get('browser_id_confirmed', False):
+        return st.session_state.browser_id
+    
     # JavaScript to manage cookies
     browser_id = components.html(
         """
@@ -29,32 +33,37 @@ def get_browser_id():
             let date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             let expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            document.cookie = name + "=" + value + ";" + expires + ";path=/;SameSite=Lax";
         }
         
         // Get or create browser ID
         let browserId = getCookie('wedding_user_id');
         if (!browserId) {
             browserId = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
-            setCookie('wedding_user_id', browserId, 365); // Cookie expires in 1 year
+            setCookie('wedding_user_id', browserId, 365);
         }
         
-        // Return the ID to Streamlit
+        // Return immediately - Streamlit will pick it up on next rerun
+        const value = browserId;
         window.parent.postMessage({
             type: 'streamlit:setComponentValue',
-            value: browserId
+            value: value
         }, '*');
+        
+        // Also write to page for debugging
+        document.write('<div style="display:none">ID:' + value + '</div>');
         </script>
         """,
         height=0,
     )
     
-    # If we got a value from the component, store it in session state
-    if browser_id:
+    # If we got a value from the component, store and confirm it
+    if browser_id and browser_id.startswith('usr_'):
         st.session_state.browser_id = browser_id
+        st.session_state.browser_id_confirmed = True
         return browser_id
     
-    # Return from session state if available, otherwise generate temporary ID
+    # Return from session state if available
     if 'browser_id' in st.session_state:
         return st.session_state.browser_id
     
@@ -203,19 +212,32 @@ def save_gift_registry(df):
 def mark_gift_as_purchased(gift_index):
     """Mark a gift as purchased by the current browser"""
     df = load_gift_registry()
+    browser_id = get_browser_id()
+    
+    # Debug logging
+    print(f"[DEBUG] Marking gift {gift_index} as purchased by {browser_id}")
+    
     if 0 <= gift_index < len(df):
         df.at[gift_index, 'purchased'] = True
-        df.at[gift_index, 'session_id'] = get_browser_id()
-        return save_gift_registry(df)
+        df.at[gift_index, 'session_id'] = browser_id
+        result = save_gift_registry(df)
+        print(f"[DEBUG] Save result: {result}")
+        return result
+    print(f"[DEBUG] Invalid gift index: {gift_index}")
     return False
 
 def unmark_gift_as_purchased(gift_index):
     """Unmark a gift as purchased - only if the browser ID matches"""
     df = load_gift_registry()
+    browser_id = get_browser_id()
+    
     if 0 <= gift_index < len(df):
         # Check if the browser ID matches
         stored_browser = str(df.at[gift_index, 'session_id']).strip()
-        current_browser = get_browser_id()
+        current_browser = browser_id
+        
+        # Debug logging
+        print(f"[DEBUG] Unmark attempt - Stored: {stored_browser}, Current: {current_browser}, Match: {stored_browser == current_browser}")
         
         if stored_browser == current_browser:
             df.at[gift_index, 'purchased'] = False
@@ -228,8 +250,15 @@ def unmark_gift_as_purchased(gift_index):
 def can_undo_purchase(gift_index):
     """Check if the current browser can undo the purchase of this gift"""
     df = load_gift_registry()
+    browser_id = get_browser_id()
+    
     if 0 <= gift_index < len(df):
         stored_browser = str(df.at[gift_index, 'session_id']).strip()
-        current_browser = get_browser_id()
-        return stored_browser == current_browser
+        current_browser = browser_id
+        can_undo = stored_browser == current_browser
+        
+        # Debug logging
+        print(f"[DEBUG] Can undo check - Index: {gift_index}, Stored: {stored_browser}, Current: {current_browser}, Result: {can_undo}")
+        
+        return can_undo
     return False
