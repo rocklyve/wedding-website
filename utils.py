@@ -14,8 +14,11 @@ CSV_FILE = st.secrets["files"]["csv_file"]
 def get_browser_id():
     """Get or create a persistent browser ID using cookies"""
     
-    # Create cookie manager (not cached to avoid widget warnings)
-    cookie_manager = stx.CookieManager()
+    # Create cookie manager only once per session
+    if 'cookie_manager' not in st.session_state:
+        st.session_state.cookie_manager = stx.CookieManager()
+    
+    cookie_manager = st.session_state.cookie_manager
     
     # Try to get existing cookie
     try:
@@ -25,8 +28,8 @@ def get_browser_id():
             st.session_state.browser_id = browser_id
             st.session_state.browser_id_confirmed = True
             return browser_id
-    except:
-        pass
+    except Exception as e:
+        print(f"[DEBUG] Failed to get cookie: {e}")
     
     # If we have it in session state, return it
     if 'browser_id' in st.session_state and st.session_state.get('browser_id_confirmed', False):
