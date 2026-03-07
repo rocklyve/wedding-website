@@ -158,6 +158,12 @@ def load_gift_registry():
             # Ensure purchased column is boolean
             df['purchased'] = df['purchased'].astype(bool)
             
+            # Convert literal \n to actual line breaks in text columns
+            text_columns = ['name', 'description']
+            for col in text_columns:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).str.replace('\\n', '\n', regex=False)
+            
             # Add quantity columns if they don't exist
             if 'quantity_total' not in df.columns:
                 df['quantity_total'] = 1
