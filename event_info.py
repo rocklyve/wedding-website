@@ -115,7 +115,7 @@ def event_info_page():
                 st.write(st.secrets['event'].get('registry_message',
                         'Eure Anwesenheit ist das größte Geschenk, wenn ihr uns dennoch eine Freude machen möchtet, findet ihr hier unsere Wunschliste.'))
                 
-                st.write("Alternativ könnt ihr uns auch mit einem Beitrag zu unserer Hochzeitsreise unterstützen!")
+                st.write("🌴 Alternativ könnt ihr uns auch mit einem Beitrag zu unserer Hochzeitsreise unterstützen!")
                 
                 # Load gift registry
                 gift_df = load_gift_registry()
