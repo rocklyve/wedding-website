@@ -38,8 +38,20 @@ def event_info_page():
 
                 st.markdown("---")
 
+                # Reception Venue
+                st.header(":material/celebration: Trauung & Feierlocation")
+
+                st.write(f"**{st.secrets['event']['venue_name']}**")
+                st.write(st.secrets['event']['venue_address'])
+
+                if st.secrets['event'].get('venue_map_url'):
+                    st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
+
+                # st.write("**:material/local_parking: Parken**")
+                st.write("(Kostenlose Parkplätze sind an der Location verfügbar)")
+
                 # Timeline/Ablauf within Date section
-                st.subheader(":material/schedule: Ablauf")
+                st.header(":material/schedule: Ablauf")
                 timeline_items = st.secrets.get('timeline', [])
                 if timeline_items:
                     for item in timeline_items:
@@ -55,19 +67,6 @@ def event_info_page():
                     st.info("Ablaufinformationen folgen in Kürze.")
 
                 st.markdown("---")
-
-                # Reception Venue
-                st.header(":material/celebration: Trauung & Feierlocation")
-
-                st.write(f"**{st.secrets['event']['venue_name']}**")
-                st.write(st.secrets['event']['venue_address'])
-
-                if st.secrets['event'].get('venue_map_url'):
-                    st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
-
-                st.markdown("")
-                st.write("**:material/local_parking: Parken**")
-                st.write("Kostenlose Parkplätze sind an der Location verfügbar.")
 
                 # Additional Info
                 additional_info = st.secrets['event'].get('additional_info')
