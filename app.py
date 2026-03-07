@@ -31,10 +31,10 @@ COLUMN_RATIO_CONTACT = [3, 4, 2]  # Column ratio for contact information
 COLUMN_RATIO_GUEST = [3, 1]  # Column ratio for guest details
 COLUMN_RATIO_MENU = [1.2, 1.8, 1.1]  # Column ratio for menu selections
 
-# Menu options
-STARTERS = st.secrets["menu"]["starters"]
-MAINS = st.secrets["menu"]["mains"]
-DESSERTS = st.secrets["menu"]["desserts"]
+# Menu options (optional - for admin menu planning page)
+STARTERS = st.secrets.get("menu", {}).get("starters", [])
+MAINS = st.secrets.get("menu", {}).get("mains", [])
+DESSERTS = st.secrets.get("menu", {}).get("desserts", [])
 
 def initialize_session_state():
     """Initialize session state variables"""
@@ -94,13 +94,13 @@ def process_submission():
     # Check deadline enforcement first
     if is_past_deadline() and not is_within_grace_period():
         st.error(":material/block: Die Anmeldefrist für die Zusage ist abgelaufen. Zusagen werden nicht mehr angenommen.")
-        st.info("Bitte kontaktieren Sie das Hochzeitspaar direkt, wenn Sie Ihre Zusage noch ändern möchten.")
+        st.info("Bitte kontaktiere das Hochzeitspaar direkt, wenn du deine Zusage noch ändern möchtest.")
         st.session_state.submission_in_progress = False
         return False
 
     # Show warning if in grace period
     if is_within_grace_period():
-        st.warning(":material/timer: Sie befinden sich in der Nachfrist – die Anmeldefrist ist abgelaufen, aber Zusagen werden noch angenommen.")
+        st.warning(":material/timer: Du befindest dich in der Nachfrist – die Anmeldefrist ist abgelaufen, aber Zusagen werden noch angenommen.")
 
     # Show urgency warning if within warning period
     if is_within_warning_period():
@@ -220,46 +220,44 @@ def rsvp_form_page():
     left_spacer, main_col, right_spacer = st.columns([1, 3, 1])
 
     with main_col:
-        col1, col2 = st.columns(COLUMN_RATIO_HEADER)
-        with col1:
-            st.header(f"{st.secrets['wedding']['wedding_couple']} Hochzeit - Zusage")
-            st.write(st.secrets["welcome"]["message"])
-            st.write("Bitte geben Sie unten die Details für jeden teilnehmenden Gast an (das vollständige Menü finden Sie auf der Seite [**Veranstaltungsinformationen**](/event_info_page)).")
-            # Check deadline status and display countdown/warning
-            deadline = get_deadline_datetime()
-            if deadline:
-                if is_past_deadline():
-                    if is_within_grace_period():
-                        st.error(":material/schedule: Die Anmeldefrist ist abgelaufen, aber Zusagen werden noch für kurze Zeit angenommen.")
-                        grace_end = deadline + timedelta(hours=st.secrets["deadline"].get("grace_period_hours", 24))
-                        st.warning(f":material/timer: Nachfrist endet: {grace_end.strftime('%d. %B %Y um %H:%M %Z')}")
-                    else:
-                        st.error(":material/block: Die Anmeldefrist ist abgelaufen. Neue Zusagen werden nicht mehr angenommen.")
-                        st.info("Bitte kontaktieren Sie das Hochzeitspaar direkt, wenn Sie Ihre Zusage noch ändern möchten.")
-                        return  # Stop rendering the form
-                elif is_within_warning_period():
-                    time_remaining = get_time_until_deadline()
-                    formatted_time = format_time_remaining(time_remaining)
-
-                    st.warning(f":material/schedule: **Anmeldefrist endet bald!**")
-
-                    # Create a prominent countdown display
-                    with st.container():
-                        st.markdown(f"""
-                        <div style="
-                            background: linear-gradient(90deg, #ff6b6b, #ee5a52);
-                            padding: 15px;
-                            border-radius: 8px;
-                            text-align: center;
-                            color: white;
-                            margin: 10px 0;
-                            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        ">
-                            <h3>⏰ Verbleibende Zeit: {formatted_time}</h3>
-                            <p>Frist: {deadline.strftime('%d. %B %Y um %H:%M %Z')}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+        st.header(f":material/favorite: Zu/Absage")
+        st.write(st.secrets["ui"]["welcome_message"])
+        
+        # Check deadline status and display countdown/warning
+        deadline = get_deadline_datetime()
+        if deadline:
+            if is_past_deadline():
+                if is_within_grace_period():
+                    st.error(":material/schedule: Die Anmeldefrist ist abgelaufen, aber Zusagen werden noch für kurze Zeit angenommen.")
+                    grace_end = deadline + timedelta(hours=st.secrets["deadline"].get("grace_period_hours", 24))
+                    st.warning(f":material/timer: Nachfrist endet: {grace_end.strftime('%d. %B %Y um %H:%M %Z')}")
                 else:
+                    st.error(":material/block: Die Anmeldefrist ist abgelaufen. Neue Zusagen werden nicht mehr angenommen.")
+                    st.info("Bitte kontaktieren Sie das Hochzeitspaar direkt, wenn Sie Ihre Zusage noch ändern möchten.")
+                    return  # Stop rendering the form
+            elif is_within_warning_period():
+                time_remaining = get_time_until_deadline()
+                formatted_time = format_time_remaining(time_remaining)
+
+                st.warning(f":material/schedule: **Anmeldefrist endet bald!**")
+
+                # Create a prominent countdown display
+                with st.container():
+                    st.markdown(f"""
+                    <div style="
+                        background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+                        padding: 15px;
+                        border-radius: 8px;
+                        text-align: center;
+                        color: white;
+                        margin: 10px 0;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    ">
+                        <h3>⏰ Verbleibende Zeit: {formatted_time}</h3>
+                        <p>Frist: {deadline.strftime('%d. %B %Y um %H:%M %Z')}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
                     # Show normal deadline info
                     time_remaining = get_time_until_deadline()
                     formatted_time = format_time_remaining(time_remaining)
@@ -288,11 +286,7 @@ def rsvp_form_page():
                     formatted_time_de = format_time_de(get_time_until_deadline())
                     st.info(f":material/schedule: **Anmeldefrist**:  {deadline_str} ({formatted_time_de} verbleibend)")
 
-        with col2:
-            if st.secrets['wedding'].get('banner_image'):
-                st.image(st.secrets['wedding']['banner_image'])
         st.markdown("---")
-
 
         # Initialize session state
         initialize_session_state()
@@ -329,9 +323,9 @@ def rsvp_form_page():
 
         # RSVP Response
         with st.container(border=True):
-            st.markdown("**Werden Sie an unserer Hochzeit teilnehmen?**")
+            st.markdown("**Wirst du an unserer Hochzeit teilnehmen?**")
             attending = st.radio(
-                "**Werden Sie an unserer Hochzeit teilnehmen?**",
+                "**Wirst du an unserer Hochzeit teilnehmen?**",
                 ["Ja, ich/wir nehme(n) teil", "Nein, ich/wir kann/können nicht teilnehmen"],
                 key="attending", horizontal=True, label_visibility="collapsed"
             )
@@ -349,7 +343,7 @@ def rsvp_form_page():
 
         if attending == "Ja, ich/wir nehme(n) teil":
             st.markdown("**Gästedetails**")
-            st.write("Bitte geben Sie die Details für jeden teilnehmenden Gast an:")
+            st.write("Bitte gib die Details für jeden teilnehmenden Gast an:")
 
             # Display guests
             for i, _ in enumerate(st.session_state.guests):
@@ -392,7 +386,7 @@ def rsvp_form_page():
                     st.text_area(
                         "Unverträglichkeiten/Allergien",
                         key=f"dietary_{i}",
-                        placeholder="Bitte geben Sie Unverträglichkeiten oder Allergien an",
+                        placeholder="Bitte gebe Unverträglichkeiten oder Allergien an",
                         height=60
                     )
 
