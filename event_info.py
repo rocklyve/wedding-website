@@ -341,7 +341,7 @@ def event_info_page():
 
                     with trauzeugen_col1:
                         st.write("**Michaela Wurz**")
-                        st.write(":material/phone: +4915783756750")
+                        st.write(":material/phone: +4917685707832")
                         # st.write(":material/email: ...")
 
                     with trauzeugen_col2:
@@ -351,7 +351,7 @@ def event_info_page():
 
                     with trauzeugen_col3:
                         st.write("**Paul Laubenstein**")
-                        # st.write(":material/phone: +4917685707832")
+                        st.write(":material/phone: +4915783756750")
                         # st.write(":material/email: ...")
             else:
                 st.info("Kontaktinformationen folgen in Kürze.")
