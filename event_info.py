@@ -19,7 +19,7 @@ def event_info_page():
             ":material/event: Details",
             ":material/directions_car: Anreise",
             ":material/hotel: Unterkünfte",
-            ":material/card_giftcard: Geschenke & Infos",
+            ":material/card_giftcard: Geschenkliste",
             ":material/contact_mail: Kontakt"
         ])
 
@@ -65,6 +65,22 @@ def event_info_page():
 
                 if st.secrets['event'].get('venue_map_url'):
                     st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
+
+                # Additional Info
+                additional_info = st.secrets['event'].get('additional_info')
+                if additional_info:
+                    valid_info = [
+                        item for item in additional_info
+                        if item.get('title', '').strip() and item.get('content', '').strip()
+                    ]
+
+                    if valid_info:
+                        st.markdown("---")
+                        st.subheader(":material/info: Weitere Informationen")
+
+                        for info_item in valid_info:
+                            with st.expander(info_item['title']):
+                                st.write(info_item['content'])
 
         # Tab 2: Transportation (moved from tab4)
         with tab2:
@@ -126,6 +142,11 @@ def event_info_page():
 
         # Tab 4: Registry & Additional Info (moved from tab5)
         with tab4:
+            # Prominent info about monetary gifts for honeymoon
+            st.info("💰 **Geldgeschenke für unsere Hochzeitsreise**\n\nWir träumen von einer Hochzeitsreise nach Südamerika! Falls ihr uns etwas schenken möchtet, würden wir uns sehr über einen Beitrag zu diesem Abenteuer freuen. 🌎✈️", icon=":material/flight:")
+            
+            st.markdown("")
+            
             with st.container(border=True):
                 # Gift Registry from CSV
                 st.subheader(":material/card_giftcard: Geschenkliste")
@@ -289,22 +310,6 @@ def event_info_page():
                                                     st.rerun()
                 else:
                     st.info("Die Geschenkliste wird in Kürze verfügbar sein.")
-
-                st.markdown("---")
-
-                additional_info = st.secrets['event'].get('additional_info')
-                if additional_info:
-                    valid_info = [
-                        item for item in additional_info
-                        if item.get('title', '').strip() and item.get('content', '').strip()
-                    ]
-
-                    if valid_info:
-                        st.subheader(":material/info: Weitere Informationen")
-
-                        for info_item in valid_info:
-                            with st.expander(info_item['title']):
-                                st.write(info_item['content'])
 
         # Tab 5: Contact (moved from tab6)
         with tab5:
