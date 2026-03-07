@@ -15,16 +15,15 @@ def event_info_page():
         st.markdown("---")
 
         # Create tabs
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             ":material/event: Details",
-            ":material/schedule: Ablauf",
-            ":material/hotel: Unterkünfte",
             ":material/directions_car: Anreise",
+            ":material/hotel: Unterkünfte",
             ":material/card_giftcard: Geschenke & Infos",
             ":material/contact_mail: Kontakt"
         ])
 
-        # Tab 1: Event Details (Date, Time, Ceremony, Reception)
+        # Tab 1: Event Details (Date, Time, Ceremony, Reception, Timeline)
         with tab1:
             with st.container(border=True):
                 st.header(":material/calendar_today: Datum & Uhrzeit")
@@ -40,20 +39,10 @@ def event_info_page():
 
                 st.markdown("---")
 
-                # Reception Venue
-                st.header(":material/celebration: Trauung & Feierlocation")
-
-                st.write(f"**{st.secrets['event']['venue_name']}**")
-                st.write(st.secrets['event']['venue_address'])
-
-                if st.secrets['event'].get('venue_map_url'):
-                    st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
-
-        # Tab 2: Timeline
-        with tab2:
-            timeline_items = st.secrets.get('timeline', [])
-            if timeline_items:
-                with st.container(border=True):
+                # Timeline/Ablauf within Date section
+                st.subheader(":material/schedule: Ablauf")
+                timeline_items = st.secrets.get('timeline', [])
+                if timeline_items:
                     for item in timeline_items:
                         with st.container():
                             time_col, event_col = st.columns([0.5, 3])
@@ -63,11 +52,57 @@ def event_info_page():
                                 st.write(item['event'])
                                 if item.get('description'):
                                     st.caption(item['description'])
-            else:
-                st.info("Ablaufinformationen folgen in Kürze.")
+                else:
+                    st.info("Ablaufinformationen folgen in Kürze.")
 
+                st.markdown("---")
 
-        # Tab 3: Accommodations
+                # Reception Venue
+                st.header(":material/celebration: Trauung & Feierlocation")
+
+                st.write(f"**{st.secrets['event']['venue_name']}**")
+                st.write(st.secrets['event']['venue_address'])
+
+                if st.secrets['event'].get('venue_map_url'):
+                    st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
+
+        # Tab 2: Transportation (moved from tab4)
+        with tab2:
+            with st.container(border=True):
+                # Google Maps Link
+                if st.secrets['event'].get('venue_map_url'):
+                    st.subheader(":material/map: Location")
+                    st.page_link(st.secrets['event']['venue_map_url'], label='In Google Maps öffnen', icon=":material/map:")
+                    st.markdown("")
+
+                # Public Transport
+                st.subheader(":material/train: Anreise mit öffentlichen Verkehrsmitteln")
+                if st.secrets['event'].get('transportation', {}).get('public_transport'):
+                    st.write(st.secrets['event']['transportation']['public_transport'])
+                else:
+                    st.write("[Platzhalter: Beschreibung der Anreise mit öffentlichen Verkehrsmitteln - z.B. nächster Bahnhof, Buslinien, etc.]")
+                st.markdown("")
+
+                # Car/Driving
+                st.subheader(":material/directions_car: Anreise mit dem Auto")
+                if st.secrets['event'].get('transportation', {}).get('driving'):
+                    st.write(st.secrets['event']['transportation']['driving'])
+                else:
+                    st.write("[Platzhalter: Beschreibung der Anfahrt mit dem Auto - z.B. Autobahn-Ausfahrt, Navigationstipps, etc.]")
+                st.markdown("")
+
+                # Parking
+                if st.secrets['event'].get('transportation', {}).get('parking'):
+                    st.subheader(":material/local_parking: Parken")
+                    st.write(st.secrets['event']['transportation']['parking'])
+                    st.markdown("")
+
+                # Taxi (optional)
+                if st.secrets['event'].get('transportation', {}).get('taxi_info'):
+                    st.subheader(":material/local_taxi: Taxi")
+                    st.write(st.secrets['event']['transportation']['taxi_info'])
+
+        # Tab 3: Accommodations (moved from tab3)
         with tab3:
             accommodations_items = st.secrets.get('accommodations', [])
             if accommodations_items:
@@ -89,29 +124,8 @@ def event_info_page():
             else:
                 st.info("Unterkunftsinformationen folgen in Kürze.")
 
-        # Tab 4: Transportation
+        # Tab 4: Registry & Additional Info (moved from tab5)
         with tab4:
-            if st.secrets['event'].get('transportation'):
-                transport_info = st.secrets['event']['transportation']
-                with st.container(border=True):
-                    if transport_info.get('parking'):
-                        st.subheader(":material/local_parking: Parken")
-                        st.write(transport_info['parking'])
-                        st.markdown("")
-
-                    if transport_info.get('public_transport'):
-                        st.subheader(":material/train: Öffentlicher Nahverkehr")
-                        st.write(transport_info['public_transport'])
-                        st.markdown("")
-
-                    if transport_info.get('taxi_info'):
-                        st.subheader(":material/local_taxi: Taxi")
-                        st.write(transport_info['taxi_info'])
-            else:
-                st.info("Anreiseinformationen folgen in Kürze.")
-
-        # Tab 5: Registry & Additional Info
-        with tab5:
             with st.container(border=True):
                 # Gift Registry from CSV
                 st.subheader(":material/card_giftcard: Geschenkliste")
@@ -237,13 +251,14 @@ def event_info_page():
                             with st.expander(info_item['title']):
                                 st.write(info_item['content'])
 
-        # Tab 6: Contact
-        with tab6:
+        # Tab 5: Contact (moved from tab6)
+        with tab5:
             if st.secrets.get('contact'):
                 contact = st.secrets['contact']
                 with st.container(border=True):
                     st.write("Bei Fragen meldet euch gerne bei uns:")
 
+                    st.subheader(":material/favorite: Brautpaar")
                     contact_col1, contact_col2 = st.columns(2)
 
                     if contact.get('bride'):
@@ -261,5 +276,28 @@ def event_info_page():
                                 st.write(f":material/phone: {contact['groom']['phone']}")
                             if contact['groom'].get('email'):
                                 st.write(f":material/email: {contact['groom']['email']}")
+
+                    st.markdown("---")
+
+                    st.subheader(":material/groups: Trauzeugen")
+                    trauzeugen_col1, trauzeugen_col2, trauzeugen_col3 = st.columns(3)
+
+                    with trauzeugen_col1:
+                        st.write("**Michaela Wurz**")
+                        # Optional: Add contact info when available
+                        # st.write(":material/phone: +49...")
+                        # st.write(":material/email: ...")
+
+                    with trauzeugen_col2:
+                        st.write("**Simon Laubenstein**")
+                        # Optional: Add contact info when available
+                        # st.write(":material/phone: +49...")
+                        # st.write(":material/email: ...")
+
+                    with trauzeugen_col3:
+                        st.write("**Paul Laubenstein**")
+                        # Optional: Add contact info when available
+                        # st.write(":material/phone: +49...")
+                        # st.write(":material/email: ...")
             else:
                 st.info("Kontaktinformationen folgen in Kürze.")
