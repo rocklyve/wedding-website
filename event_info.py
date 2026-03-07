@@ -140,9 +140,14 @@ def event_info_page():
                             with cols[col_idx]:
                                 # Create a card container
                                 with st.container(border=True):
-                                    # Display image
+                                    # Display image as square
                                     if item.get('image_url') and item['image_url'].strip():
-                                        st.image(item['image_url'], width='stretch')
+                                        st.markdown(f"""
+                                        <div style="width: 100%; padding-bottom: 100%; position: relative; overflow: hidden; border-radius: 8px;">
+                                            <img src="{item['image_url']}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        st.write("")
                                     
                                     # Title
                                     st.markdown(f"### {item['name']}")
