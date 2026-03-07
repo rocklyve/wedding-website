@@ -19,7 +19,7 @@ def event_info_page():
             ":material/event: Details",
             ":material/directions_car: Anreise",
             ":material/hotel: Unterkünfte",
-            ":material/card_giftcard: Geschenkliste",
+            ":material/card_giftcard: Wunschliste",
             ":material/contact_mail: Kontakt"
         ])
 
@@ -142,16 +142,11 @@ def event_info_page():
 
         # Tab 4: Registry & Additional Info (moved from tab5)
         with tab4:
-            # Prominent info about monetary gifts for honeymoon
-            st.info("💰 **Geldgeschenke für unsere Hochzeitsreise**\n\nWir träumen von einer Hochzeitsreise nach Südamerika! Falls ihr uns etwas schenken möchtet, würden wir uns sehr über einen Beitrag zu diesem Abenteuer freuen. 🌎✈️", icon=":material/flight:")
-            
-            st.markdown("")
-            
             with st.container(border=True):
                 # Gift Registry from CSV
-                st.subheader(":material/card_giftcard: Geschenkliste")
+                st.subheader(":material/card_giftcard: Wunschliste")
                 st.write(st.secrets['event'].get('registry_message',
-                        'Eure Anwesenheit ist das größte Geschenk, aber falls ihr etwas schenken möchtet:'))
+                        'Eure Anwesenheit ist das größte Geschenk, wenn ihr uns dennoch eine Freude machen möchtet, findet ihr hier unsere Wunschliste.'))
                 
                 # Load gift registry
                 gift_df = load_gift_registry()
@@ -309,7 +304,7 @@ def event_info_page():
                                                     st.session_state[confirm_key] = False
                                                     st.rerun()
                 else:
-                    st.info("Die Geschenkliste wird in Kürze verfügbar sein.")
+                    st.info("Die Wunschliste wird in Kürze verfügbar sein.")
 
         # Tab 5: Contact (moved from tab6)
         with tab5:
