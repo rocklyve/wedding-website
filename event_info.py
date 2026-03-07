@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase, get_browser_id
+from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase, get_browser_id, get_remaining_quantity
 
 def event_info_page():
     # Initialize browser ID for persistent gift tracking
@@ -173,15 +173,23 @@ def event_info_page():
                                     
                                     st.write("")
                                     
+                                    # Quantity information
+                                    quantity_total = int(item.get('quantity_total', 1))
+                                    quantity_purchased = int(item.get('quantity_purchased', 0))
+                                    quantity_remaining = quantity_total - quantity_purchased
+                                    
+                                    # Show quantity info if total > 1
+                                    if quantity_total > 1:
+                                        if quantity_purchased > 0:
+                                            st.info(f"📊 {quantity_purchased} von {quantity_total} bereits gekauft")
+                                        else:
+                                            st.info(f"📊 {quantity_total} Stück verfügbar")
+                                    
+                                    st.write("")
+                                    
                                     # Status and action buttons
-                                    if item['purchased']:
-                                        st.success("✓ Bereits gekauft")
-                                        
-                                        # Debug info
-                                        with st.expander("🔍 Debug: Kaufinfo"):
-                                            st.write(f"**Gespeicherte ID:** `{item.get('session_id', 'keine')}`")
-                                            st.write(f"**Deine ID:** `{get_browser_id()}`")
-                                            st.write(f"**Kannst rückgängig machen:** {can_undo_purchase(idx)}")
+                                    if quantity_remaining <= 0:
+                                        st.success("✓ Vollständig gekauft")
                                         
                                         # Show undo option only if this session purchased it
                                         if can_undo_purchase(idx):
@@ -208,21 +216,68 @@ def event_info_page():
                                                         st.session_state[undo_key] = False
                                                         st.rerun()
                                     else:
+                                        # Still available for purchase
+                                        if quantity_purchased > 0 and can_undo_purchase(idx):
+                                            # Show partial purchase with undo option
+                                            st.success(f"✓ Du hast bereits gekauft")
+                                            
+                                            undo_key = f'undo_{idx}'
+                                            if not st.session_state.get(undo_key, False):
+                                                if st.button("Rückgängig machen", key=f"undo_btn_{idx}", type="secondary", width='stretch'):
+                                                    st.session_state[undo_key] = True
+                                                    st.rerun()
+                                            else:
+                                                # Show undo confirmation
+                                                st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
+                                                col_yes, col_no = st.columns(2)
+                                                with col_yes:
+                                                    if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", width='stretch'):
+                                                        if unmark_gift_as_purchased(idx):
+                                                            st.success("Die Markierung wurde rückgängig gemacht.")
+                                                            st.session_state[undo_key] = False
+                                                            st.rerun()
+                                                        else:
+                                                            st.error("Fehler beim Rückgängigmachen.")
+                                                with col_no:
+                                                    if st.button("✗ Nein", key=f"undo_no_{idx}", width='stretch'):
+                                                        st.session_state[undo_key] = False
+                                                        st.rerun()
+                                            
+                                            st.write("")
+                                        
                                         # Check if we're in confirmation mode for this item
                                         confirm_key = f'confirm_{idx}'
                                         
                                         if not st.session_state.get(confirm_key, False):
+                                            # Show quantity selector if more than 1 available
+                                            if quantity_total > 1:
+                                                quantity_to_buy = st.number_input(
+                                                    f"Anzahl:",
+                                                    min_value=1,
+                                                    max_value=quantity_remaining,
+                                                    value=1,
+                                                    step=1,
+                                                    key=f"quantity_{idx}"
+                                                )
+                                                st.session_state[f"selected_quantity_{idx}"] = quantity_to_buy
+                                            else:
+                                                st.session_state[f"selected_quantity_{idx}"] = 1
+                                            
                                             # Show initial button
                                             if st.button("Als gekauft markieren", key=f"purchase_btn_{idx}", type="primary", width='stretch'):
                                                 st.session_state[confirm_key] = True
                                                 st.rerun()
                                         else:
                                             # Show confirmation
-                                            st.warning("Möchtest du diesen Artikel wirklich als gekauft markieren?")
+                                            selected_qty = st.session_state.get(f"selected_quantity_{idx}", 1)
+                                            if quantity_total > 1:
+                                                st.warning(f"Möchtest du {selected_qty} Stück wirklich als gekauft markieren?")
+                                            else:
+                                                st.warning("Möchtest du diesen Artikel wirklich als gekauft markieren?")
                                             col_yes, col_no = st.columns(2)
                                             with col_yes:
                                                 if st.button("✓ Ja", key=f"yes_{idx}", type="primary", width='stretch'):
-                                                    if mark_gift_as_purchased(idx):
+                                                    if mark_gift_as_purchased(idx, selected_qty):
                                                         st.success("Vielen Dank! Der Artikel wurde als gekauft markiert.")
                                                         st.session_state[confirm_key] = False
                                                         st.rerun()

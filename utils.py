@@ -150,11 +150,22 @@ def load_gift_registry():
             df = pd.read_csv(GIFT_REGISTRY_FILE)
             # Ensure purchased column is boolean
             df['purchased'] = df['purchased'].astype(bool)
+            
+            # Add quantity columns if they don't exist
+            if 'quantity_total' not in df.columns:
+                df['quantity_total'] = 1
+            if 'quantity_purchased' not in df.columns:
+                df['quantity_purchased'] = 0
+            
+            # Fill NaN values with defaults
+            df['quantity_total'] = df['quantity_total'].fillna(1).astype(int)
+            df['quantity_purchased'] = df['quantity_purchased'].fillna(0).astype(int)
+            
             return df
         except Exception as e:
             st.error(f"Error loading gift registry: {e}")
-            return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id'])
-    return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id'])
+            return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id', 'quantity_total', 'quantity_purchased'])
+    return pd.DataFrame(columns=['name', 'description', 'url', 'image_url', 'purchased', 'session_id', 'quantity_total', 'quantity_purchased'])
 
 def save_gift_registry(df):
     """Save gift registry dataframe to CSV file"""
@@ -165,30 +176,45 @@ def save_gift_registry(df):
         st.error(f"Error saving gift registry: {e}")
         return False
 
-def mark_gift_as_purchased(gift_index):
-    """Mark a gift as purchased by the current browser"""
+def mark_gift_as_purchased(gift_index, quantity=1):
+    """Mark a gift as purchased by the current browser with specified quantity"""
     df = load_gift_registry()
     browser_id = get_browser_id()
     
     # Debug logging
-    print(f"[DEBUG] Marking gift {gift_index} as purchased by {browser_id}")
+    print(f"[DEBUG] Marking gift {gift_index} as purchased by {browser_id}, quantity: {quantity}")
     
     if 0 <= gift_index < len(df):
-        df.at[gift_index, 'purchased'] = True
+        # Update quantity purchased
+        current_purchased = int(df.at[gift_index, 'quantity_purchased'])
+        total_available = int(df.at[gift_index, 'quantity_total'])
+        
+        # Don't allow purchasing more than available
+        new_purchased = min(current_purchased + quantity, total_available)
+        
+        df.at[gift_index, 'quantity_purchased'] = new_purchased
         df.at[gift_index, 'session_id'] = browser_id
+        
+        # Mark as fully purchased if quantity reached
+        if new_purchased >= total_available:
+            df.at[gift_index, 'purchased'] = True
+        
         result = save_gift_registry(df)
-        print(f"[DEBUG] Save result: {result}")
+        print(f"[DEBUG] Save result: {result}, new quantity: {new_purchased}/{total_available}")
         return result
     print(f"[DEBUG] Invalid gift index: {gift_index}")
     return False
 
-def unmark_gift_as_purchased(gift_index):
-    """Unmark a gift as purchased - only if the browser ID matches"""
+def unmark_gift_as_purchased(gift_index, quantity=None):
+    """Unmark a gift as purchased - only if the browser ID matches
+    If quantity is None, removes all purchases by this user
+    If quantity is specified, removes that many items
+    """
     df = load_gift_registry()
     browser_id = get_browser_id()
     
     if 0 <= gift_index < len(df):
-        # Check if the browser ID matches
+        # Check if the browser ID matches (last purchaser)
         stored_browser = str(df.at[gift_index, 'session_id']).strip()
         current_browser = browser_id
         
@@ -196,19 +222,44 @@ def unmark_gift_as_purchased(gift_index):
         print(f"[DEBUG] Unmark attempt - Stored: {stored_browser}, Current: {current_browser}, Match: {stored_browser == current_browser}")
         
         if stored_browser == current_browser:
-            df.at[gift_index, 'purchased'] = False
-            df.at[gift_index, 'session_id'] = ''
+            current_purchased = int(df.at[gift_index, 'quantity_purchased'])
+            
+            if quantity is None:
+                # Remove all
+                df.at[gift_index, 'quantity_purchased'] = 0
+                df.at[gift_index, 'purchased'] = False
+                df.at[gift_index, 'session_id'] = ''
+            else:
+                # Remove specified quantity
+                new_purchased = max(0, current_purchased - quantity)
+                df.at[gift_index, 'quantity_purchased'] = new_purchased
+                
+                # Update purchased flag
+                total_available = int(df.at[gift_index, 'quantity_total'])
+                df.at[gift_index, 'purchased'] = (new_purchased >= total_available)
+                
+                # Clear session_id if fully unmarked
+                if new_purchased == 0:
+                    df.at[gift_index, 'session_id'] = ''
+            
             return save_gift_registry(df)
         else:
             return False  # Browser doesn't match
     return False
 
 def can_undo_purchase(gift_index):
-    """Check if the current browser can undo the purchase of this gift"""
+    """Check if the current browser can undo the purchase of this gift
+    Only the last purchaser can undo
+    """
     df = load_gift_registry()
     browser_id = get_browser_id()
     
     if 0 <= gift_index < len(df):
+        # Check if there are any purchases first
+        quantity_purchased = int(df.at[gift_index, 'quantity_purchased'])
+        if quantity_purchased == 0:
+            return False
+        
         stored_browser = str(df.at[gift_index, 'session_id']).strip()
         current_browser = browser_id
         can_undo = stored_browser == current_browser
@@ -218,3 +269,13 @@ def can_undo_purchase(gift_index):
         
         return can_undo
     return False
+
+def get_remaining_quantity(gift_index):
+    """Get the remaining quantity available for a gift"""
+    df = load_gift_registry()
+    
+    if 0 <= gift_index < len(df):
+        total = int(df.at[gift_index, 'quantity_total'])
+        purchased = int(df.at[gift_index, 'quantity_purchased'])
+        return max(0, total - purchased)
+    return 0
