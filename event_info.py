@@ -15,9 +15,8 @@ def event_info_page():
         st.markdown("---")
 
         # Create tabs
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        tab1, tab2, tab3, tab4 = st.tabs([
             ":material/event: Details",
-            ":material/directions_car: Anreise",
             ":material/hotel: Unterkünfte",
             ":material/card_giftcard: Wunschliste",
             ":material/contact_mail: Kontakt"
@@ -66,6 +65,10 @@ def event_info_page():
                 if st.secrets['event'].get('venue_map_url'):
                     st.page_link(st.secrets['event']['venue_map_url'], label='In Maps öffnen', icon=":material/map:")
 
+                st.markdown("")
+                st.write("**:material/local_parking: Parken**")
+                st.write("Kostenlose Parkplätze sind an der Location verfügbar.")
+
                 # Additional Info
                 additional_info = st.secrets['event'].get('additional_info')
                 if additional_info:
@@ -82,44 +85,8 @@ def event_info_page():
                             with st.expander(info_item['title']):
                                 st.write(info_item['content'])
 
-        # Tab 2: Transportation (moved from tab4)
+        # Tab 2: Accommodations
         with tab2:
-            with st.container(border=True):
-                # Google Maps Link
-                if st.secrets['event'].get('venue_map_url'):
-                    st.subheader(":material/map: Location")
-                    st.page_link(st.secrets['event']['venue_map_url'], label='In Google Maps öffnen', icon=":material/map:")
-                    st.markdown("")
-
-                # Public Transport
-                st.subheader(":material/train: Anreise mit öffentlichen Verkehrsmitteln")
-                if st.secrets['event'].get('transportation', {}).get('public_transport'):
-                    st.write(st.secrets['event']['transportation']['public_transport'])
-                else:
-                    st.write("[Platzhalter: Beschreibung der Anreise mit öffentlichen Verkehrsmitteln - z.B. nächster Bahnhof, Buslinien, etc.]")
-                st.markdown("")
-
-                # Car/Driving
-                st.subheader(":material/directions_car: Anreise mit dem Auto")
-                if st.secrets['event'].get('transportation', {}).get('driving'):
-                    st.write(st.secrets['event']['transportation']['driving'])
-                else:
-                    st.write("[Platzhalter: Beschreibung der Anfahrt mit dem Auto - z.B. Autobahn-Ausfahrt, Navigationstipps, etc.]")
-                st.markdown("")
-
-                # Parking
-                if st.secrets['event'].get('transportation', {}).get('parking'):
-                    st.subheader(":material/local_parking: Parken")
-                    st.write(st.secrets['event']['transportation']['parking'])
-                    st.markdown("")
-
-                # Taxi (optional)
-                if st.secrets['event'].get('transportation', {}).get('taxi_info'):
-                    st.subheader(":material/local_taxi: Taxi")
-                    st.write(st.secrets['event']['transportation']['taxi_info'])
-
-        # Tab 3: Accommodations (moved from tab3)
-        with tab3:
             accommodations_items = st.secrets.get('accommodations', [])
             if accommodations_items:
 
@@ -140,8 +107,8 @@ def event_info_page():
             else:
                 st.info("Unterkunftsinformationen folgen in Kürze.")
 
-        # Tab 4: Registry & Additional Info (moved from tab5)
-        with tab4:
+        # Tab 3: Registry
+        with tab3:
             with st.container(border=True):
                 # Gift Registry from CSV
                 st.subheader(":material/card_giftcard: Wunschliste")
@@ -308,8 +275,8 @@ def event_info_page():
                 else:
                     st.info("Die Wunschliste wird in Kürze verfügbar sein.")
 
-        # Tab 5: Contact (moved from tab6)
-        with tab5:
+        # Tab 4: Contact
+        with tab4:
             if st.secrets.get('contact'):
                 contact = st.secrets['contact']
                 with st.container(border=True):
