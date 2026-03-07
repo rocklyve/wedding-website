@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import csv
 from datetime import datetime, timedelta
 import pytz
 import uuid
@@ -147,7 +148,13 @@ def load_gift_registry():
     """Load gift registry data from CSV file"""
     if os.path.exists(GIFT_REGISTRY_FILE):
         try:
-            df = pd.read_csv(GIFT_REGISTRY_FILE, sep=';')
+            df = pd.read_csv(
+                GIFT_REGISTRY_FILE, 
+                sep=';',
+                quotechar='"',
+                doublequote=True,
+                encoding='utf-8'
+            )
             # Ensure purchased column is boolean
             df['purchased'] = df['purchased'].astype(bool)
             
@@ -170,7 +177,15 @@ def load_gift_registry():
 def save_gift_registry(df):
     """Save gift registry dataframe to CSV file"""
     try:
-        df.to_csv(GIFT_REGISTRY_FILE, index=False, sep=';')
+        df.to_csv(
+            GIFT_REGISTRY_FILE, 
+            index=False, 
+            sep=';',
+            quotechar='"',
+            quoting=csv.QUOTE_NONNUMERIC,
+            doublequote=True,
+            encoding='utf-8'
+        )
         return True
     except Exception as e:
         st.error(f"Error saving gift registry: {e}")

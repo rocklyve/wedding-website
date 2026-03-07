@@ -303,22 +303,22 @@ def event_info_page():
 
                     st.markdown("---")
 
-                    st.subheader(":material/groups: Trauzeugen")
+                    st.subheader(":material/groups: Trauzeugin & Trauzeugen")
                     trauzeugen_col1, trauzeugen_col2, trauzeugen_col3 = st.columns(3)
 
                     with trauzeugen_col1:
                         st.write("**Michaela Wurz**")
-                        st.write(":material/phone: +4917685707832")
+                        st.write(":material/phone: +49 176 85707832")
                         # st.write(":material/email: ...")
 
                     with trauzeugen_col2:
                         st.write("**Simon Laubenstein**")
-                        st.write(":material/phone: +4915789153009")
+                        st.write(":material/phone: +49 157 89153009")
                         # st.write(":material/email: ...")
 
                     with trauzeugen_col3:
                         st.write("**Paul Laubenstein**")
-                        st.write(":material/phone: +4915783756750")
+                        st.write(":material/phone: +49 157 83756750")
                         # st.write(":material/email: ...")
             else:
                 st.info("Kontaktinformationen folgen in Kürze.")
