@@ -341,20 +341,17 @@ def event_info_page():
 
                     with trauzeugen_col1:
                         st.write("**Michaela Wurz**")
-                        # Optional: Add contact info when available
-                        # st.write(":material/phone: +49...")
+                        st.write(":material/phone: +4915783756750")
                         # st.write(":material/email: ...")
 
                     with trauzeugen_col2:
                         st.write("**Simon Laubenstein**")
-                        # Optional: Add contact info when available
-                        # st.write(":material/phone: +49...")
+                        st.write(":material/phone: +4915789153009")
                         # st.write(":material/email: ...")
 
                     with trauzeugen_col3:
                         st.write("**Paul Laubenstein**")
-                        # Optional: Add contact info when available
-                        # st.write(":material/phone: +49...")
+                        # st.write(":material/phone: +4917685707832")
                         # st.write(":material/email: ...")
             else:
                 st.info("Kontaktinformationen folgen in Kürze.")
