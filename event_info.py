@@ -113,9 +113,9 @@ def event_info_page():
                 # Gift Registry from CSV
                 st.subheader(":material/card_giftcard: Wunschliste")
                 st.write(st.secrets['event'].get('registry_message',
-                        'Eure Anwesenheit ist das größte Geschenk, wenn ihr uns dennoch eine Freude machen möchtet, findet ihr hier unsere Wunschliste.'))
+                        'Eure Anwesenheit ist das größte Geschenk. Wenn ihr uns dennoch eine Freude machen möchtet, findet ihr hier unsere Wunschliste.'))
                 
-                st.write("🌴 Alternativ könnt ihr uns auch mit einem Beitrag zu unserer Hochzeitsreise unterstützen!")
+                st.write("🌴 Alternativ könnt ihr uns auch mit einem Beitrag zu unserer Hochzeitsreise eine Freude machen!")
                 
                 # Load gift registry
                 gift_df = load_gift_registry()
