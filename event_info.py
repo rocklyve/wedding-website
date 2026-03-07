@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase, get_browser_id, get_remaining_quantity
+from utils import load_gift_registry, mark_gift_as_purchased, unmark_gift_as_purchased, can_undo_purchase, get_browser_id, get_remaining_quantity, get_user_purchased_quantity
 
 def event_info_page():
     # Initialize browser ID for persistent gift tracking
@@ -167,6 +167,7 @@ def event_info_page():
                                     quantity_total = int(item.get('quantity_total', 1))
                                     quantity_purchased = int(item.get('quantity_purchased', 0))
                                     quantity_remaining = quantity_total - quantity_purchased
+                                    user_purchased_qty = get_user_purchased_quantity(idx)
                                     
                                     # Show quantity info if total > 1
                                     if quantity_total > 1:
@@ -183,6 +184,9 @@ def event_info_page():
                                         
                                         # Show undo option only if this session purchased it
                                         if can_undo_purchase(idx):
+                                            if user_purchased_qty > 1:
+                                                st.caption(f"Du hast {user_purchased_qty} Stück gekauft")
+                                            
                                             undo_key = f'undo_{idx}'
                                             
                                             if not st.session_state.get(undo_key, False):
@@ -191,7 +195,10 @@ def event_info_page():
                                                     st.rerun()
                                             else:
                                                 # Show undo confirmation
-                                                st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
+                                                if user_purchased_qty > 1:
+                                                    st.warning(f"Möchtest du deine {user_purchased_qty} Stück wirklich rückgängig machen?")
+                                                else:
+                                                    st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
                                                 col_yes, col_no = st.columns(2)
                                                 with col_yes:
                                                     if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", width='stretch'):
@@ -209,7 +216,10 @@ def event_info_page():
                                         # Still available for purchase
                                         if quantity_purchased > 0 and can_undo_purchase(idx):
                                             # Show partial purchase with undo option
-                                            st.success(f"✓ Du hast bereits gekauft")
+                                            if user_purchased_qty > 1:
+                                                st.success(f"✓ Du hast {user_purchased_qty} Stück gekauft")
+                                            else:
+                                                st.success(f"✓ Du hast bereits gekauft")
                                             
                                             undo_key = f'undo_{idx}'
                                             if not st.session_state.get(undo_key, False):
@@ -218,7 +228,10 @@ def event_info_page():
                                                     st.rerun()
                                             else:
                                                 # Show undo confirmation
-                                                st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
+                                                if user_purchased_qty > 1:
+                                                    st.warning(f"Möchtest du deine {user_purchased_qty} Stück wirklich rückgängig machen?")
+                                                else:
+                                                    st.warning("Möchtest du die Markierung wirklich rückgängig machen?")
                                                 col_yes, col_no = st.columns(2)
                                                 with col_yes:
                                                     if st.button("✓ Ja", key=f"undo_yes_{idx}", type="primary", width='stretch'):
