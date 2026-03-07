@@ -50,6 +50,8 @@ def event_info_page():
                 # st.write("**:material/local_parking: Parken**")
                 st.write("(Kostenlose Parkplätze sind an der Location verfügbar)")
 
+                st.markdown("---")
+
                 # Timeline/Ablauf within Date section
                 st.header(":material/schedule: Ablauf")
                 timeline_items = st.secrets.get('timeline', [])
@@ -77,7 +79,6 @@ def event_info_page():
                     ]
 
                     if valid_info:
-                        st.markdown("---")
                         st.subheader(":material/info: Weitere Informationen")
 
                         for info_item in valid_info:
