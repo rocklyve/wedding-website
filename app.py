@@ -210,7 +210,7 @@ def process_submission():
         st.session_state.submission_in_progress = False
         return True
     except Exception as e:
-        st.error(f"Beim Speichern Ihrer Zusage ist ein Fehler aufgetreten: {str(e)}")
+        st.error(f"Beim Speichern deiner Zusage ist ein Fehler aufgetreten: {str(e)}")
         st.session_state.submission_in_progress = False
         return False
 
@@ -233,7 +233,7 @@ def rsvp_form_page():
                     st.warning(f":material/timer: Nachfrist endet: {grace_end.strftime('%d. %B %Y um %H:%M %Z')}")
                 else:
                     st.error(":material/block: Die Anmeldefrist ist abgelaufen. Neue Zusagen werden nicht mehr angenommen.")
-                    st.info("Bitte kontaktieren Sie das Hochzeitspaar direkt, wenn Sie Ihre Zusage noch ändern möchten.")
+                    st.info("Bitte kontaktiere das Hochzeitspaar direkt, wenn du deine Zusage noch ändern möchtest.")
                     return  # Stop rendering the form
             elif is_within_warning_period():
                 time_remaining = get_time_until_deadline()
@@ -293,7 +293,7 @@ def rsvp_form_page():
 
         # Fehler-Alert oben im Formular anzeigen, falls vorhanden
         if 'form_errors' in st.session_state and st.session_state.form_errors:
-            st.error("Bitte beheben Sie die folgenden Fehler:")
+            st.error("Bitte behebe die folgenden Fehler:")
             for error in st.session_state.form_errors:
                 st.markdown(f"<div style='color: #b00020; font-weight: bold; margin-bottom: 4px;'>• {error}</div>", unsafe_allow_html=True)
             # Fehler nach Anzeige zurücksetzen
@@ -301,7 +301,7 @@ def rsvp_form_page():
 
         # Check if form has been successfully submitted
         if st.session_state.form_submitted:
-            st.success(":material/check_circle: Zusage erfolgreich übermittelt! Vielen Dank für Ihre Rückmeldung.")
+            st.success(":material/check_circle: Zusage erfolgreich übermittelt! Vielen Dank für deine Rückmeldung.")
             # Zeige persistente Mail-Warnungen nach erfolgreicher Submission
             if 'mail_warnings' in st.session_state and st.session_state.mail_warnings:
                 for warn in st.session_state.mail_warnings:
@@ -313,7 +313,7 @@ def rsvp_form_page():
 
         # Check if submission is in progress
         if st.session_state.submission_in_progress:
-            st.info(":material/refresh: Ihre Antwort wird verarbeitet...")
+            st.info(":material/refresh: Deine Antwort wird verarbeitet...")
             with st.spinner("Bitte warten..."):
                 if process_submission():
                     st.rerun()
