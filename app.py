@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 # Import admin functions
 from admin import admin_login_page, admin_summary_page, admin_menu_page, admin_data_page
 from admin_settings import admin_settings_page
+from admin_wishlist import admin_wishlist_page
 
 # Import event info page
 from event_info import event_info_page
@@ -452,6 +453,7 @@ def _run_admin_navigation():
     admin_pages = [
         st.Page(admin_summary_page, title="Summary", icon=":material/bar_chart:", default=True),
         st.Page(admin_menu_page, title="Menu Planning", icon=":material/restaurant:"),
+        st.Page(admin_wishlist_page, title="Wishlist", icon=":material/card_giftcard:"),
         st.Page(admin_data_page, title="Data Export", icon=":material/download:"),
         st.Page(admin_settings_page, title="Settings", icon=":material/settings:"),
     ]
