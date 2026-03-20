@@ -23,5 +23,6 @@ def send_confirmation_email(to_email, subject, body):
             server.sendmail(from_email, to_email, msg.as_string())
         return True
     except Exception as e:
-        st.error(f"SMTP Fehler: {e}")
+        # Silently fail - don't show errors to users
+        print(f"SMTP Error: {e}")  # Log to console for debugging
         return False

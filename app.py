@@ -195,15 +195,23 @@ def process_submission():
                 body = f"Hallo {form_data.get('contact_name', '')},\n\nvielen Dank für deine Rückmeldung. Schade, dass du am 20.06.2026 nicht dabei sein kannst.\n\nViele Grüße!"
                 org_subject = "Absage zur Hochzeit erhalten"
                 org_body = f"Absage von: {form_data.get('contact_name', '')} ({to_email})\nStatus: Absage\n\nDetails siehe CSV."
-            mail_success = send_confirmation_email(to_email, subject, body)
-            org_success = send_confirmation_email(organizer_email, org_subject, org_body)
-            # Warnungen persistent im session_state speichern
-            if 'mail_warnings' not in st.session_state:
-                st.session_state.mail_warnings = []
-            if not mail_success:
-                st.session_state.mail_warnings.append("Hinweis: Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.")
-            if not org_success:
-                st.session_state.mail_warnings.append("Hinweis: Die Benachrichtigung an den Veranstalter konnte nicht gesendet werden.")
+
+            # Try to send confirmation email to user
+            user_mail_success = send_confirmation_email(to_email, subject, body)
+
+            # If user email failed, notify organizers about the failure
+            if not user_mail_success:
+                failure_subject = "RSVP gespeichert - E-Mail an Gast fehlgeschlagen"
+                failure_body = f"Eine neue RSVP wurde gespeichert, aber die Bestätigungs-E-Mail konnte nicht zugestellt werden.\n\n"
+                failure_body += f"Gast: {form_data.get('contact_name', '')} ({to_email})\n"
+                failure_body += f"Status: {'Zusage' if form_data.get('attending') == 'Ja, ich/wir nehme(n) teil' else 'Absage'}\n\n"
+                if form_data.get('attending') == "Ja, ich/wir nehme(n) teil":
+                    failure_body += f"Gäste: {len(gast_liste)}\nAngemeldete Personen:\n{gast_text}\n\n"
+                failure_body += "Bitte kontaktiere den Gast manuell zur Bestätigung.\n\nDetails siehe CSV."
+                send_confirmation_email(organizer_email, failure_subject, failure_body)
+            else:
+                # User email succeeded, send normal organizer notification
+                send_confirmation_email(organizer_email, org_subject, org_body)
 
         # Mark as successfully submitted
         st.session_state.form_submitted = True
@@ -302,12 +310,6 @@ def rsvp_form_page():
         # Check if form has been successfully submitted
         if st.session_state.form_submitted:
             st.success(":material/check_circle: Zusage erfolgreich übermittelt! Vielen Dank für deine Rückmeldung.")
-            # Zeige persistente Mail-Warnungen nach erfolgreicher Submission
-            if 'mail_warnings' in st.session_state and st.session_state.mail_warnings:
-                for warn in st.session_state.mail_warnings:
-                    st.warning(warn)
-                if st.button("Warnungen ausblenden", key="clear_mail_warnings"):
-                    st.session_state.mail_warnings = []
             st.balloons()
             return
 
